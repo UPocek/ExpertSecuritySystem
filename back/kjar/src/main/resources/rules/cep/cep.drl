@@ -1,0 +1,136 @@
+package cep;
+import com.ftn.sbnz.model.models.ContinuousSensor;
+import com.ftn.sbnz.model.events.ContinuousSensorEvent;
+import com.ftn.sbnz.model.models.Level;
+
+rule "Change smoke sensor to LOW"
+when
+    $e : ContinuousSensorEvent($deviceId: deviceId, value < 5);
+    $ss: ContinuousSensor(id == $deviceId, type == "smoke")
+then
+    modify ($ss) {
+        	setLevel(Level.LOW);
+        };
+    System.out.println("Smoke sensor (deviceId: " + $deviceId + ") set to ", $ss.getLevel());
+end;
+
+rule "Change smoke sensor to MEDIUM"
+when
+    $e : ContinuousSensorEvent($deviceId: deviceId, value > 5, value < 10);
+    $ss: ContinuousSensor(id == $deviceId, type == "smoke")
+then
+    modify ($ss) {
+        	setLevel(Level.MEDIUM);
+        };
+    System.out.println("Smoke sensor (deviceId: " + $deviceId + ") set to ", $ss.getLevel());
+end;
+
+rule "Change smoke sensor to HIGH"
+when
+    $e : ContinuousSensorEvent($deviceId: deviceId, value > 10);
+    $ss: ContinuousSensor(id == $deviceId, type == "smoke")
+then
+    modify ($ss) {
+        	setLevel(Level.HIGH);
+        };
+    System.out.println("Smoke sensor (deviceId: " + $deviceId + ") set to ", $ss.getLevel());
+end;
+
+rule "Change temperature to LOW"
+when
+    $e : ContinuousSensorEvent($deviceId: deviceId, value < 5);
+    $ts: ContinuousSensor(id == $deviceId, type == "temperature")
+then
+    modify ($ts) {
+        	setLevel(Level.LOW);
+        };
+    System.out.println("Temperature sensor (deviceId: " + $deviceId + ") set to ", $ts.getLevel());
+end;
+
+rule "Change temperature to MEDIUM"
+when
+    $e : ContinuousSensorEvent($deviceId: deviceId, value > 5, value < 10);
+    $ts: ContinuousSensor(id == $deviceId, type == "temperature")
+then
+    modify ($ts) {
+        	setLevel(Level.MEDIUM);
+        };
+    System.out.println("Temperature sensor (deviceId: " + $deviceId + ") set to ", $ts.getLevel());
+end;
+
+rule "Change temperature to HIGH"
+when
+    $e : ContinuousSensorEvent($deviceId: deviceId, value > 10);
+    $ts: ContinuousSensor(id == $deviceId, type == "temperature")
+then
+    modify ($ts) {
+        	setLevel(Level.HIGH);
+        };
+    System.out.println("Temperature sensor (deviceId: " + $deviceId + ") set to ", $ts.getLevel());
+end;
+
+rule "Change humidity sensor to LOW"
+when
+    $e : ContinuousSensorEvent($deviceId: deviceId, value < 5);
+    $hs: ContinuousSensor(id == $deviceId, type == "humidity")
+then
+    modify ($hs) {
+        	setLevel(Level.LOW);
+        };
+    System.out.println("Humidity sensor (deviceId: " + $deviceId + ") set to ", $hs.getLevel());
+end;
+
+rule "Change humidity sensor to MEDIUM"
+when
+    $e : ContinuousSensorEvent($deviceId: deviceId, value > 5, value < 10);
+    $hs: ContinuousSensor(id == $deviceId, type == "humidity")
+then
+    modify ($hs) {
+        	setLevel(Level.MEDIUM);
+        };
+    System.out.println("Humidity sensor (deviceId: " + $deviceId + ") set to ", $hs.getLevel());
+end;
+
+rule "Change humidity sensor to HIGH"
+when
+    $e : ContinuousSensorEvent($deviceId: deviceId, value > 10);
+    $hs: ContinuousSensor(id == $deviceId, type == "humidity")
+then
+    modify ($hs) {
+        	setLevel(Level.HIGH);
+        };
+    System.out.println("Humidity sensor (deviceId: " + $deviceId + ") set to ", $hs.getLevel());
+end;
+
+rule "Change noise sensor to LOW"
+when
+    $e : ContinuousSensorEvent($deviceId: deviceId, value < 5);
+    $ns: ContinuousSensor(id == $deviceId, type == "noise")
+then
+    modify ($ns) {
+        	setLevel(Level.LOW);
+        };
+    System.out.println("Noise sensor (deviceId: " + $deviceId + ") set to ", $ns.getLevel());
+end;
+
+rule "Change noise sensor to MEDIUM"
+when
+    $e : ContinuousSensorEvent($deviceId: deviceId, value > 5, value < 10);
+    $ns: ContinuousSensor(id == $deviceId, type == "noise")
+then
+    modify ($ns) {
+        	setLevel(Level.MEDIUM);
+        };
+    System.out.println("Noise sensor (deviceId: " + $deviceId + ") set to ", $ns.getLevel());
+end;
+
+rule "Change noise sensor to HIGH"
+when
+    $e : ContinuousSensorEvent($deviceId: deviceId, value > 10);
+    $ns: ContinuousSensor(id == $deviceId, type == "noise")
+then
+    modify ($ns) {
+        	setLevel(Level.HIGH);
+        };
+    System.out.println("Noise sensor (deviceId: " + $deviceId + ") set to ", $ns.getLevel());
+end;
