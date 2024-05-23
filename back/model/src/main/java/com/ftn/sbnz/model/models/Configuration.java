@@ -5,18 +5,15 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class Configuration {
     private int criticalLowValue;
-    private int criticalMediumValue;
     private int criticalHighValue;
 
     public Configuration() {
-        this.criticalLowValue = 0;
-        this.criticalMediumValue = 0;
-        this.criticalHighValue = 0;
+        this.criticalLowValue = 1;
+        this.criticalHighValue = 5;
     }
 
-    public Configuration(int criticalLowValue, int criticalMediumValue, int criticalHighValue) {
+    public Configuration(int criticalLowValue, int criticalHighValue) {
         this.criticalLowValue = criticalLowValue;
-        this.criticalMediumValue = criticalMediumValue;
         this.criticalHighValue = criticalHighValue;
     }
 
@@ -26,14 +23,6 @@ public class Configuration {
 
     public void setCriticalLowValue(int criticalLowValue) {
         this.criticalLowValue = criticalLowValue;
-    }
-
-    public int getCriticalMediumValue() {
-        return criticalMediumValue;
-    }
-
-    public void setCriticalMediumValue(int criticalMediumValue) {
-        this.criticalMediumValue = criticalMediumValue;
     }
 
     public int getCriticalHighValue() {

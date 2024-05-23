@@ -1,136 +1,135 @@
-package cep;
+package com.ftn.sbnz.rules;
+
+import com.ftn.sbnz.model.models.Event;
+import com.ftn.sbnz.model.models.Camera;
+import com.ftn.sbnz.model.models.Security;
+import com.ftn.sbnz.model.models.Alarm;
+import com.ftn.sbnz.model.models.Room;
+import com.ftn.sbnz.model.models.TemperatureReading;
+import com.ftn.sbnz.model.models.FaceDetection;
 import com.ftn.sbnz.model.models.ContinuousSensor;
-import com.ftn.sbnz.model.events.ContinuousSensorEvent;
+import com.ftn.sbnz.model.events.DiscretSensorEvent;
 import com.ftn.sbnz.model.models.Level;
 
-rule "Change smoke sensor to LOW"
+rule "Activate camera if motion is detected and camera is present"
 when
-    $e : ContinuousSensorEvent($deviceId: deviceId, value < 5);
-    $ss: ContinuousSensor(id == $deviceId, type == "smoke")
+    $event: DiscretSensorEvent(type == "motion")
+    $camera: Camera(roomId == $event.roomId, $camera.isOn == false)
 then
-    modify ($ss) {
-        	setLevel(Level.LOW);
-        };
-    System.out.println("Smoke sensor (deviceId: " + $deviceId + ") set to ", $ss.getLevel());
-end;
+    $camera.setIsOn(true);
+    delete($event);
+end
 
-rule "Change smoke sensor to MEDIUM"
+rule "Activate camera if sound or smoke is detected and camera is present"
 when
-    $e : ContinuousSensorEvent($deviceId: deviceId, value >= 5, value < 10);
-    $ss: ContinuousSensor(id == $deviceId, type == "smoke")
+    $event: ContinuousSensor(type in ("sound", "smoke"), level == Level.MEDIUM)
+    $camera: Camera(roomId == $event.roomId,, $camera.isOn == false)
 then
-    modify ($ss) {
-        	setLevel(Level.MEDIUM);
-        };
-    System.out.println("Smoke sensor (deviceId: " + $deviceId + ") set to ", $ss.getLevel());
-end;
+    $camera.setIsOn(true);
+    $event.setProcessed(true);
+end
 
-rule "Change smoke sensor to HIGH"
+rule "Notify security if motion is detected and camera is not present"
 when
-    $e : ContinuousSensorEvent($deviceId: deviceId, value >= 10);
-    $ss: ContinuousSensor(id == $deviceId, type == "smoke")
+    $event: DiscretSensorEvent(type == "motion", processed == false)
+    $room: Room(id == $event.roomId)
+    not(Camera(roomId == $room.id))
 then
-    modify ($ss) {
-        	setLevel(Level.HIGH);
-        };
-    System.out.println("Smoke sensor (deviceId: " + $deviceId + ") set to ", $ss.getLevel());
-end;
+    Security.notifyOnCaution($room);
+    $event.setProcessed(true);
+end
 
-rule "Change temperature to LOW"
+rule "Notify security if sound or smoke is detected and camera is not present"
 when
-    $e : ContinuousSensorEvent($deviceId: deviceId, value < 0);
-    $ts: ContinuousSensor(id == $deviceId, type == "temperature")
+    $event: ContinuousSensor(type in ("sound", "smoke"))
+    $room: Room(id == $event.roomId)
+    not(Camera(roomId == $room.id))
 then
-    modify ($ts) {
-        	setLevel(Level.LOW);
-        };
-    System.out.println("Temperature sensor (deviceId: " + $deviceId + ") set to ", $ts.getLevel());
-end;
+    Security.notifyOnCaution($room);
+end
 
-rule "Change temperature to MEDIUM"
+rule "Always notify security if camera is not present"
 when
-    $e : ContinuousSensorEvent($deviceId: deviceId, value >= 0, value < 30);
-    $ts: ContinuousSensor(id == $deviceId, type == "temperature")
+    $room: Room()
+    not(Camera(roomId == $room.id))
 then
-    modify ($ts) {
-        	setLevel(Level.MEDIUM);
-        };
-    System.out.println("Temperature sensor (deviceId: " + $deviceId + ") set to ", $ts.getLevel());
-end;
+    Security.notifyOnCaution($room);
+end
 
-rule "Change temperature to HIGH"
+rule "Monitor room when camera is on and check for presence"
 when
-    $e : ContinuousSensorEvent($deviceId: deviceId, value >= 30);
-    $ts: ContinuousSensor(id == $deviceId, type == "temperature")
+    $camera: Camera(status == "on")
+    $room: Room(id == $camera.roomId)
+    $event: Event(type in ("motion", "sound", "smoke"), roomId == $room.id)
 then
-    modify ($ts) {
-        	setLevel(Level.HIGH);
-        };
-    System.out.println("Temperature sensor (deviceId: " + $deviceId + ") set to ", $ts.getLevel());
-end;
+    // Monitor the room
+end
 
-rule "Change humidity sensor to LOW"
+rule "Check temperature if presence detected by camera"
 when
-    $e : ContinuousSensorEvent($deviceId: deviceId, value < 10);
-    $hs: ContinuousSensor(id == $deviceId, type == "humidity")
+    $camera: Camera(status == "on", detected == true)
+    $room: Room(id == $camera.roomId)
 then
-    modify ($hs) {
-        	setLevel(Level.LOW);
-        };
-    System.out.println("Humidity sensor (deviceId: " + $deviceId + ") set to ", $hs.getLevel());
-end;
+    insert(new DiscretSensorEvent("detectTemp", $room.id););
+end
 
-rule "Change humidity sensor to MEDIUM"
+rule "Check temperature if presence detected by camera"
 when
-    $e : ContinuousSensorEvent($deviceId: deviceId, value >= 10, value < 90);
-    $hs: ContinuousSensor(id == $deviceId, type == "humidity")
+    $event: DiscretSensorEvent(type == "detectTemp", warm == true)
+    $camera: Camera(roomId == $event.roomId)
 then
-    modify ($hs) {
-        	setLevel(Level.MEDIUM);
-        };
-    System.out.println("Humidity sensor (deviceId: " + $deviceId + ") set to ", $hs.getLevel());
-end;
+    insert(new DiscretSensorEvent("faceRecognition",$event.roomId););
+end
 
-rule "Change humidity sensor to HIGH"
+rule "Signal unknown person if face detection fails"
 when
-    $e : ContinuousSensorEvent($deviceId: deviceId, value >= 90);
-    $hs: ContinuousSensor(id == $deviceId, type == "humidity")
+    $camera: Camera(status == "on")
+    $room: Room(id == $camera.roomId)
+    $faceDetection: DiscretSensorEvent(type == "faceRecognition", detected == false, roomId == $room.id)
 then
-    modify ($hs) {
-        	setLevel(Level.HIGH);
-        };
-    System.out.println("Humidity sensor (deviceId: " + $deviceId + ") set to ", $hs.getLevel());
-end;
+    $room.setAlarm(Alarm.YELLOW);
+end
 
-rule "Change noise sensor to LOW"
+rule "Set red alarm and lock doors if loud sound in room with unknown person and yellow alarm"
 when
-    $e : ContinuousSensorEvent($deviceId: deviceId, value < 2);
-    $ns: ContinuousSensor(id == $deviceId, type == "noise")
+    $event: ContinuousSensor(type == "sound", level == Level.HIGH)
+    $room: Room(id == $event.roomId, alarm == Alarm.YELLOW)
+    $faceDetection: DiscretSensorEvent(type == "faceRecognition", detected == false, roomId == $room.id)
 then
-    modify ($ns) {
-        	setLevel(Level.LOW);
-        };
-    System.out.println("Noise sensor (deviceId: " + $deviceId + ") set to ", $ns.getLevel());
-end;
+    $room.setAlarm(Alarm.RED);
+    $room.setLocked(true);
+end
 
-rule "Change noise sensor to MEDIUM"
+rule "Call police if alarm is red"
 when
-    $e : ContinuousSensorEvent($deviceId: deviceId, value >= 2, value < 4);
-    $ns: ContinuousSensor(id == $deviceId, type == "noise")
+    $room: Room(alarm == Alarm.RED)
 then
-    modify ($ns) {
-        	setLevel(Level.MEDIUM);
-        };
-    System.out.println("Noise sensor (deviceId: " + $deviceId + ") set to ", $ns.getLevel());
-end;
+    Security.callPolice($room);
+end
 
-rule "Change noise sensor to HIGH"
+rule "Set yellow alarm if security finds unknown person"
 when
-    $e : ContinuousSensorEvent($deviceId: deviceId, value >= 4);
-    $ns: ContinuousSensor(id == $deviceId, type == "noise")
+    $security: Security(currentRoomId != null )
+    $room: Room(id == $security.currentRoomId)
+    $faceDetection: DiscretSensorEvent(type == "securityFaceRecognition", detected == false, roomId == $room.id)
 then
-    modify ($ns) {
-        	setLevel(Level.HIGH);
-        };
-    System.out.println("Noise sensor (deviceId: " + $deviceId + ") set to ", $ns.getLevel());
-end;
+    Security.notifyTeam($room);
+    $room.setAlarm(Alarm.YELLOW);
+end
+
+rule "Set red alarm and lock doors if loud sound in room with security and yellow alarm"
+when
+    $event: ContinuousSensor(type == "sound", level == Level.HIGH)
+    $room: Room(id == $event.roomId, alarm == Alarm.YELLOW)
+    $security: Security(currentRoomId == $room.id)
+then
+    $room.setAlarm(Alarm.RED);
+    $room.setLocked(true);
+end
+
+rule "Call police if alarm is red"
+when
+    $room: Room(alarm == Alarm.RED)
+then
+    Security.callPolice($room);
+end
