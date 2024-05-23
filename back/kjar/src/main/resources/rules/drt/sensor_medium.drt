@@ -4,7 +4,6 @@ sensorType
 lowThreshold
 mediumThreshold
 
-
 package drl;
 
 import com.ftn.sbnz.model.models.ContinuousSensor;

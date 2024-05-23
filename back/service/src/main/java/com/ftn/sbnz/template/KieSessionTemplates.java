@@ -30,6 +30,7 @@ public class KieSessionTemplates {
 
     private static String compileTemplateWithSensors(String templatePath, List<ContinuousSensor> sensors) {
         InputStream template = KieSessionTemplates.class.getResourceAsStream(templatePath);
+
         String[][] data = sensors.stream()
                 .map(sensor -> {
                     Configuration config = sensor.getConfig();
@@ -38,6 +39,7 @@ public class KieSessionTemplates {
                             String.valueOf(config.getCriticalHighValue()) };
                 })
                 .toArray(String[][]::new);
+
         DataProvider dataProvider = new ArrayDataProvider(data);
         DataProviderCompiler compiler = new DataProviderCompiler();
         return compiler.compile(dataProvider, template);

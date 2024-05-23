@@ -26,6 +26,7 @@ public class SensorController {
 	@PostMapping("/continuous")
 	public ContinuousSensor addContinuousSensor(@RequestParam String sensorType, @RequestParam Long roomId) {
 		ContinuousSensor newSensor = sensorService.addContinuousSensor(sensorType, roomId);
+
 		log.debug("Added new sensor: " + newSensor);
 
 		return newSensor;
