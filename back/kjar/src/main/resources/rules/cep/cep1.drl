@@ -1,0 +1,120 @@
+package com.ftn.sbnz.rules.cep;
+
+import com.ftn.sbnz.model.events.PersonDetectionEvent;
+import com.ftn.sbnz.model.events.AggregatedDetection;
+
+rule "Aggregate 5 Minute Detection"
+when
+    $detection: PersonDetectionEvent($location: location, done == false)
+    $count: Number() from accumulate(
+        $event: PersonDetectionEvent(location == $location) over window:time(5m),
+        sum($event.numberOfPeople)
+    )
+then
+    insert(new AggregatedDetection($location, $count.intValue(), "5m"));
+end;
+
+rule "Aggregate 15 Minute Detection"
+when
+    $detection: AggregatedDetection($location: location, interval == "5m", done == false)
+    $count: Number(intValue == 3) from accumulate(
+        $agg: AggregatedDetection(interval == "5m", location == $location) over window:time(15m),
+        count($agg)
+    )
+    $aggregation: Number() from accumulate(
+        $agg: AggregatedDetection(interval == "5m", location == $location) over window:time(15m),
+        sum($agg.numberOfPeople)
+    )
+then
+    insert(new AggregatedDetection($location, $aggregation.intValue(), "15m"));
+end;
+
+rule "Aggregate 30 Minute Detection"
+when
+    $detection: AggregatedDetection($location: location, interval == "15m", done == false)
+    $count: Number(intValue == 2) from accumulate(
+        $agg: AggregatedDetection(interval == "15m", location == $location) over window:time(30m),
+        count($agg)
+    )
+    $aggregation: Number() from accumulate(
+        $agg: AggregatedDetection(interval == "15m", location == $location) over window:time(30m),
+        sum($agg.numberOfPeople)
+    )
+then
+    insert(new AggregatedDetection($location, $count.intValue(), "30m"));
+end;
+
+rule "Aggregate 1 Hour Detection"
+when
+    $detection: AggregatedDetection($location: location, interval == "30m", done == false)
+    $count: Number(intValue == 2) from accumulate(
+        $agg: AggregatedDetection(interval == "30m", location == $location) over window:time(1h),
+        count($agg)
+    )
+    $aggregation: Number() from accumulate(
+        $agg: AggregatedDetection(interval == "30m", location == $location) over window:time(1h),
+        sum($agg.numberOfPeople)
+    )
+then
+    insert(new AggregatedDetection($location, $count.intValue(), "1h"));
+end;
+
+rule "Aggregate 2 Hour Detection"
+when
+    $detection: AggregatedDetection($location: location, interval == "1h", done == false)
+    $count: Number(intValue == 2) from accumulate(
+        $agg: AggregatedDetection(interval == "1h", location == $location) over window:time(2h),
+        count($agg)
+    )
+    $aggregation: Number() from accumulate(
+        $agg: AggregatedDetection(interval == "1h", location == $location) over window:time(2h),
+        sum($agg.numberOfPeople)
+    )
+then
+    insert(new AggregatedDetection($location, $count.intValue(), "2h"));
+end;
+
+rule "Aggregate 4 Hour Detection"
+when
+    $detection: AggregatedDetection($location: location, interval == "2h", done == false)
+    $count: Number(intValue == 2) from accumulate(
+        $agg: AggregatedDetection(interval == "2h", location == $location) over window:time(4h),
+        count($agg)
+    )
+    $aggregation: Number() from accumulate(
+        $agg: AggregatedDetection(interval == "2h", location == $location) over window:time(4h),
+        sum($agg.numberOfPeople)
+    )
+then
+    insert(new AggregatedDetection($location, $count.intValue(), "4h"));
+end;
+
+rule "Aggregate 8 Hour Detection"
+when
+    $detection: AggregatedDetection($location: location, interval == "4h", done == false)
+    $count: Number(intValue == 2) from accumulate(
+        $agg: AggregatedDetection(interval == "4h", location == $location) over window:time(8h),
+        count($agg)
+    )
+    $aggregation: Number() from accumulate(
+        $agg: AggregatedDetection(interval == "4h", location == $location) over window:time(8h),
+        sum($agg.numberOfPeople)
+    )
+then
+    insert(new AggregatedDetection($location, $count.intValue(), "8h"));
+end;
+
+rule "Aggregate 24 Hour Detection"
+when
+    $detection: AggregatedDetection($location: location, interval == "8h", done == false)
+    $count: Number(intValue == 2) from accumulate(
+        $agg: AggregatedDetection(interval == "8h", location == $location) over window:time(24h),
+        count($agg)
+    )
+    $aggregation: Number() from accumulate(
+        $agg: AggregatedDetection(interval == "8h", location == $location) over window:time(24h),
+        sum($agg.numberOfPeople)
+    )
+then
+    insert(new AggregatedDetection($location, $count.intValue(), "24h"));
+end;

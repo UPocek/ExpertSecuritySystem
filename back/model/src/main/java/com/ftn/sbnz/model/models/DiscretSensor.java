@@ -7,9 +7,9 @@ public class DiscretSensor extends ObserverSensor {
 
     private String type;
 
-    public DiscretSensor(int checkTime) {
-        super(checkTime);
-        // TODO Auto-generated constructor stub
+    public DiscretSensor(String type, int checkTime, Room room) {
+        super(checkTime, room);
+        this.type = type;
     }
 
     public String getType() {

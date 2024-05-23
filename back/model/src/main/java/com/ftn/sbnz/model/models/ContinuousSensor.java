@@ -9,10 +9,19 @@ public class ContinuousSensor extends ObserverSensor {
     @Embedded
     private Configuration config;
 
-    public ContinuousSensor(String type, int checkTime) {
-        super(checkTime);
+    public ContinuousSensor() {
+        super();
+    }
+
+    public ContinuousSensor(String type, int checkTime, Room room) {
+        super(checkTime, room);
         this.type = type;
         this.config = new Configuration();
+    }
+
+    public ContinuousSensor(Long id, Level level, String type) {
+        super(id, level);
+        this.type = type;
     }
 
     public String getType() {

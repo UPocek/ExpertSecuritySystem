@@ -5,40 +5,30 @@ import org.kie.api.definition.type.Role;
 
 @Role(Role.Type.EVENT)
 @Expires("30m")
-public class ContinuousSensorEvent {
+public class DiscretSensorEvent {
+    public Long roomId;
     public Long deviceId;
-    public Double value;
     public Long timestamp;
     public String type;
     public boolean processed;
-    public Long roomId;
+    public boolean detected;
 
-    public ContinuousSensorEvent() {
+    public DiscretSensorEvent() {
     }
 
-    public ContinuousSensorEvent(String type, Long deviceId, Long roomId, Double value, Long timestamp) {
-        this.type = type;
-        this.deviceId = deviceId;
-        this.value = value;
-        this.timestamp = timestamp;
-        this.processed = false;
+    public DiscretSensorEvent(String type, Long roomId, Long deviceId) {
         this.roomId = roomId;
-    }
-
-    public Long getDeviceId() {
-        return deviceId;
-    }
-
-    public void setDeviceId(Long deviceId) {
         this.deviceId = deviceId;
+        this.type = type;
+        this.processed = false;
+        this.detected = true;
     }
 
-    public Double getValue() {
-        return value;
-    }
-
-    public void setValue(Double value) {
-        this.value = value;
+    public DiscretSensorEvent(Long roomId, Long timestamp, String type, boolean processed) {
+        this.roomId = roomId;
+        this.timestamp = timestamp;
+        this.type = type;
+        this.processed = processed;
     }
 
     public Long getTimestamp() {
@@ -63,6 +53,14 @@ public class ContinuousSensorEvent {
 
     public void setProcessed(boolean processed) {
         this.processed = processed;
+    }
+
+    public Long getRoomId() {
+        return roomId;
+    }
+
+    public void setRoomId(Long roomId) {
+        this.roomId = roomId;
     }
 
 }

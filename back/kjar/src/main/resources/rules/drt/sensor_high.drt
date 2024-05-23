@@ -1,0 +1,41 @@
+template header
+deviceId
+sensorType
+lowThreshold
+mediumThreshold
+
+package drl;
+
+import com.ftn.sbnz.model.models.ContinuousSensor;
+import com.ftn.sbnz.model.events.ContinuousSensorEvent;
+import com.ftn.sbnz.model.models.Level;
+
+template "sensor to HIGH"
+
+rule "Change @{deviceId} sensor to HIGH"
+when
+    $e : ContinuousSensorEvent(deviceId == @{deviceId}, value >= @{mediumThreshold}, processed != true);
+    $s: ContinuousSensor(id == @{deviceId}, level != Level.HIGH)
+then
+    modify ($s) {
+        	setLevel(Level.HIGH);
+    };
+    modify ($e) {
+        	setProcessed(true);
+    };
+    System.out.println("@{sensorType} sensor (deviceId: " + @{deviceId} + ") set to " + $s.getLevel());
+end;
+
+rule "Insert @{deviceId} sensor if not exists with HIGH"
+when
+    $e : ContinuousSensorEvent(deviceId == @{deviceId}, $dId : deviceId, value >= @{mediumThreshold}, processed != true)
+    not(ContinuousSensor(id == @{deviceId}))
+then
+    modify ($e) {
+        	setProcessed(true);
+    };
+    insert(new ContinuousSensor($dId, Level.HIGH, "@{sensorType}"));
+    System.out.println("Inserted new @{sensorType} sensor (deviceId: " + @{deviceId} + ") with level " + Level.HIGH.toString());
+end;
+
+end template

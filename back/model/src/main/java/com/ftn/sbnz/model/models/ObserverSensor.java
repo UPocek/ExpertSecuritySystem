@@ -6,21 +6,33 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.ManyToOne;
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class ObserverSensor {
     @Id
     @GeneratedValue(strategy = GenerationType.TABLE)
-    private Long id;
-    private int checkTime;
-    private boolean onOff;
-    private Level level;
+    public Long id;
+    public int checkTime;
+    public boolean onOff;
+    public Level level;
+    @ManyToOne
+    public Room room;
 
-    public ObserverSensor(int checkTime) {
+    public ObserverSensor() {
+    }
+
+    public ObserverSensor(int checkTime, Room room) {
+        this.room = room;
         this.checkTime = checkTime;
         this.onOff = false;
         this.level = Level.MEDIUM;
+    }
+
+    public ObserverSensor(Long id, Level level) {
+        this.id = id;
+        this.level = level;
     }
 
     public int getCheckTime() {
