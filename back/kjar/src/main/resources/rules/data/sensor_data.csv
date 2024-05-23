@@ -1,0 +1,5 @@
+RuleSet,sensorType,lowThreshold,mediumThreshold
+Rule_1,smoke,5,10
+Rule_2,temperature,0,30
+Rule_3,humidity,10,90
+Rule_4,noise,2,4
