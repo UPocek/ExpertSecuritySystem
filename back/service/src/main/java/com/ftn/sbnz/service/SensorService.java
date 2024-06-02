@@ -10,12 +10,13 @@ import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
 import org.kie.api.builder.KieFileSystem;
 import org.kie.api.builder.KieModule;
-import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.ftn.sbnz.managers.SessionManager;
 import com.ftn.sbnz.model.events.ContinuousSensorEvent;
 import com.ftn.sbnz.model.events.DiscretSensorEvent;
 import com.ftn.sbnz.model.models.Camera;
@@ -48,15 +49,15 @@ public class SensorService {
     private ISecurityRepository securityRepository;
 
     @Autowired
-    private KieContainer kieContainer;
+    private SessionManager sessionManager;
 
     private KieSession kieSession;
 
-    @PostConstruct
-    public void initialize() {
-        kieSession = kieContainer.newKieSession("sensorsKsession");
-        updateSessionWithSensors();
-    }
+    // @PostConstruct
+    // public void initialize() {
+    // kieSession = sessionManager.getSession("sensorsKsession");
+    // updateSessionWithSensors();
+    // }
 
     private void updateSessionWithSensors() {
         List<ContinuousSensor> continuousSensor = continuousSensorRepository.findAll();
@@ -83,7 +84,7 @@ public class SensorService {
             }
 
             kieSession.dispose();
-            kieSession = newSession;
+            kieSession = sessionManager.updateSession("sensorsKsession", newSession);
         }
     }
 
@@ -99,6 +100,23 @@ public class SensorService {
         updateSessionWithSensors();
 
         return sensor;
+    }
+
+    public ContinuousSensor updateConfig(Long sensorId, int criticalLowValue, int criticalHighValue) {
+        Optional<ContinuousSensor> sensor = continuousSensorRepository.findById(sensorId);
+        if (sensor.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No sensor with that id");
+        }
+
+        ContinuousSensor sensorFounded = sensor.get();
+        sensorFounded.getConfig().setCriticalLowValue(criticalLowValue);
+        sensorFounded.getConfig().setCriticalHighValue(criticalHighValue);
+        continuousSensorRepository.save(sensorFounded);
+        continuousSensorRepository.flush();
+
+        updateSessionWithSensors();
+
+        return sensorFounded;
     }
 
     public DiscretSensor addDiscretSensor(String sensorType, Long roomId) {
@@ -150,8 +168,8 @@ public class SensorService {
         }
     }
 
-    @PreDestroy
-    public void cleanup() {
-        kieSession.dispose();
-    }
+    // @PreDestroy
+    // public void cleanup() {
+    // kieSession.dispose();
+    // }
 }

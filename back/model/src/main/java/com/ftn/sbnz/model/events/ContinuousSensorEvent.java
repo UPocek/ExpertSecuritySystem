@@ -16,7 +16,7 @@ public class ContinuousSensorEvent {
     public ContinuousSensorEvent() {
     }
 
-    public ContinuousSensorEvent(String type, Long deviceId, Long roomId, Double value, Long timestamp) {
+    public ContinuousSensorEvent(String type, Long roomId, Long deviceId, Double value, Long timestamp) {
         this.type = type;
         this.deviceId = deviceId;
         this.value = value;

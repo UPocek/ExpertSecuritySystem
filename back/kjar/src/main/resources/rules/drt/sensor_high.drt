@@ -35,7 +35,7 @@ then
         	setProcessed(true);
     };
     insert(new ContinuousSensor($dId, Level.HIGH, "@{sensorType}"));
-    System.out.println("Inserted new @{sensorType} sensor (deviceId: " + @{deviceId} + ") with level " + Level.HIGH.toString());
+    System.out.println("Inserted new @{sensorType} sensor (deviceId: " + $dId + ") with level " + Level.HIGH.toString());
 end;
 
 end template

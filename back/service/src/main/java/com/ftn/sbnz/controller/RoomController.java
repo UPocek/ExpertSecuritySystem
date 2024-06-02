@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ftn.sbnz.model.models.Room;
@@ -20,8 +21,8 @@ public class RoomController {
     private RoomService roomService;
 
     @PostMapping()
-    public Room addRoom() {
-        Room newRoom = roomService.addRoom();
+    public Room addRoom(@RequestParam String name) {
+        Room newRoom = roomService.addRoom(name);
 
         log.debug("Added new room: " + newRoom);
 

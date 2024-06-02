@@ -59,6 +59,16 @@ public class SensorController {
 		return security;
 	}
 
+	@PutMapping("/update_config")
+	public ContinuousSensor updateConfig(@RequestParam Long sensorId, @RequestParam int criticalLowValue,
+			@RequestParam int criticalHighValue) {
+		ContinuousSensor sensorUpdated = sensorService.updateConfig(sensorId, criticalLowValue, criticalHighValue);
+
+		log.debug("Added new sensor config for sensor with id: " + sensorId);
+		return sensorUpdated;
+
+	}
+
 	@PutMapping("/continuous_reading")
 	public void reading(@RequestParam Long roomId, @RequestParam Long sensorId, @RequestParam String sensorType,
 			@RequestParam double value) {
