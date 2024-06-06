@@ -3,15 +3,14 @@ package com.ftn.sbnz;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieScanner;
 import org.kie.api.runtime.KieContainer;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-import com.ftn.sbnz.service.LoadTestDataService;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication()
+@SpringBootApplication
+@EnableScheduling
 // public class ServiceApplication implements CommandLineRunner {
 public class ServiceApplication {
 
