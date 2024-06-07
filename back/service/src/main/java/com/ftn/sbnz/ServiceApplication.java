@@ -14,8 +14,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 // public class ServiceApplication implements CommandLineRunner {
 public class ServiceApplication {
 
-	// @Autowired
-	// private LoadTestDataService loadTestDataService;
+	@Autowired
+	private LoadTestDataService loadTestDataService;
 
 	public static void main(String[] args) {
 		SpringApplication.run(ServiceApplication.class, args);
@@ -23,8 +23,8 @@ public class ServiceApplication {
 
 	// @Override
 	// public void run(String... args) throws Exception {
-	// loadTestDataService.createRoomHierarchy();
-	// loadTestDataService.createAggregationsForBottomLevelRooms();
+	// // loadTestDataService.createRoomHierarchy();
+	// // loadTestDataService.createAggregationsForBottomLevelRooms();
 	// }
 
 	@Bean

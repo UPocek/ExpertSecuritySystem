@@ -7,6 +7,10 @@ public class Camera extends ReactorSensor {
 
     public boolean isOn;
 
+    public Camera() {
+
+    }
+
     public Camera(Room room) {
         super(room);
         this.isOn = false;

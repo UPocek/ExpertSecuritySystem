@@ -9,6 +9,9 @@ public class Location {
     @Position(1)
     private String location;
 
+    public Location() {
+    }
+
     public Location(String item, String location) {
         this.item = item;
         this.location = location;

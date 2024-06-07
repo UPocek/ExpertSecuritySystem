@@ -16,14 +16,17 @@ public class Room {
     public boolean locked;
     @ManyToOne
     public Room isContainedIn;
+    @ManyToOne
+    public Room building;
 
     public Room() {
     }
 
-    public Room(String name) {
+    public Room(String name, Room building) {
         this.alarm = Alarm.GREEN;
         this.locked = false;
         this.name = name;
+        this.building = building;
     }
 
     public Long getId() {
@@ -64,6 +67,14 @@ public class Room {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Room getBuilding() {
+        return building;
+    }
+
+    public void setBuilding(Room building) {
+        this.building = building;
     }
 
 }

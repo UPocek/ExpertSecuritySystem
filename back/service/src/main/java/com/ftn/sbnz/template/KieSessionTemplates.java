@@ -44,4 +44,5 @@ public class KieSessionTemplates {
         DataProviderCompiler compiler = new DataProviderCompiler();
         return compiler.compile(dataProvider, template);
     }
+
 }

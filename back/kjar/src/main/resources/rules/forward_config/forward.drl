@@ -1,0 +1,173 @@
+package com.ftn.sbnz.rules.forward_config;
+
+import com.ftn.sbnz.model.models.RoomRequest;
+import com.ftn.sbnz.model.models.Level;
+import com.ftn.sbnz.model.models.SensorRequest;
+import com.ftn.sbnz.model.models.WorkRequest;
+import com.ftn.sbnz.model.models.WorkResponse;
+import com.ftn.sbnz.model.models.ExtraGearRequest;
+import com.ftn.sbnz.model.models.ExtraGearResponse;
+
+rule "Room request 1"
+when
+    $rr: RoomRequest(type == "living", size > 10, level == Level.HIGH, $roomId:roomId)
+then
+    System.out.println("Room request 1");
+    insert(new SensorRequest($roomId,"camera","living",Level.HIGH, 4));
+    insert(new WorkRequest($roomId,"bring_electricity"));
+    delete($rr);
+end;
+
+rule "Room request 2"
+when
+    $rr: RoomRequest(type == "living", size > 10, level == Level.MEDIUM, $roomId:roomId)
+then
+    System.out.println("Room request 2");
+    insert(new SensorRequest($roomId,"motion","living",Level.MEDIUM, 4));
+    insert(new WorkRequest($roomId,"bring_electricity"));
+    delete($rr);
+end;
+
+rule "Room request 3"
+when
+    $rr: RoomRequest(type == "living", size < 10, level == Level.MEDIUM, $roomId:roomId)
+then
+    System.out.println("Room request 3");
+    insert(new SensorRequest($roomId,"motion","living",Level.MEDIUM, 2));
+    insert(new WorkRequest($roomId,"bring_electricity"));
+    delete($rr);
+end;
+
+rule "Room request 4"
+when
+    $rr: RoomRequest(type == "work", size > 10, level == Level.HIGH, $roomId:roomId)
+then
+    System.out.println("Room request 4");
+    insert(new SensorRequest($roomId,"camera","living",Level.HIGH, 4));
+    insert(new SensorRequest($roomId,"motion","living",Level.HIGH, 2));
+    insert(new WorkRequest($roomId,"bring_electricity"));
+    delete($rr);
+end;
+
+rule "Room request 5"
+when
+    $rr: RoomRequest(type == "work", size < 10, level == Level.HIGH, $roomId:roomId)
+then
+    System.out.println("Room request 5");
+    insert(new SensorRequest($roomId,"camera","living",Level.HIGH, 2));
+    insert(new SensorRequest($roomId,"motion","living",Level.HIGH, 2));
+    insert(new WorkRequest($roomId,"bring_electricity"));
+    delete($rr);
+end;
+
+rule "Room request 6"
+when
+    $rr: RoomRequest(type == "work", size > 10, level == Level.MEDIUM, $roomId:roomId)
+then
+    System.out.println("Room request 6");
+    insert(new SensorRequest($roomId,"camera","living",Level.MEDIUM, 2));
+    insert(new SensorRequest($roomId,"motion","living",Level.MEDIUM, 4));
+    insert(new WorkRequest($roomId,"bring_electricity"));
+    delete($rr);
+end;
+
+rule "Room request 7"
+when
+    $rr: RoomRequest(type == "work", size < 10, level == Level.MEDIUM, $roomId:roomId)
+then
+    System.out.println("Room request 7");
+    insert(new SensorRequest($roomId,"camera","living",Level.MEDIUM, 1));
+    insert(new SensorRequest($roomId,"motion","living",Level.MEDIUM, 2));
+    insert(new WorkRequest($roomId,"bring_electricity"));
+    delete($rr);
+end;
+
+rule "Room request 8"
+when
+    $wr: WorkResponse(type == "bring_electricity", $roomId:roomId, $success: success)
+    $w: WorkRequest(roomId == $roomId, type == "bring_electricity")
+then
+    System.out.println("Room request 8");
+    modify($w){setSuccess($success)};
+    modify($w){setProcessed(true)};
+    delete($wr);
+end;
+
+rule "Room request 9"
+when    
+    $s: SensorRequest(type == "camera", $roomId:roomId)
+    $w: WorkRequest(roomId == $roomId, type == "bring_electricity", success == false, isProcessed == true)
+then
+    System.out.println("Room request 9");
+    modify($s){setPower("battery")};
+end;
+
+rule "Room request 10"
+when
+    $s: SensorRequest(type == "camera", building == "living", $roomId:roomId)
+    $w: WorkRequest(roomId == $roomId, type == "bring_electricity", success == true, isProcessed == true)
+then
+    System.out.println("Room request 10");
+    modify($s){setPower("wifi")};
+end;
+
+rule "Room request 11"
+when
+    $s: SensorRequest(type == "camera", building == "work", $roomId:roomId)
+    $w: WorkRequest(roomId == $roomId, type == "bring_electricity", success == false, isProcessed == true)
+then
+    System.out.println("Room request 11");
+    modify($s){setPower("IP")};
+end;
+
+rule "Room request 12"
+when
+    $s: SensorRequest(type == "camera", level == Level.MEDIUM, power == "battery", $roomId:roomId)
+then
+    System.out.println("Room request 12");
+    insert(new ExtraGearRequest($roomId,"extra_battery"));
+end;
+
+rule "Room request 13"
+when
+    $s: SensorRequest(type == "camera", level == Level.HIGH, power == "battery", $roomId:roomId)
+then
+    System.out.println("Room request 13");
+    insert(new ExtraGearRequest($roomId,"extra_battery"));
+end;
+
+rule "Room request 14"
+when
+    $s: SensorRequest(type == "camera", power == "wifi", $roomId:roomId)
+then
+    System.out.println("Room request 14");
+    insert(new WorkRequest($roomId,"setup_app"));
+end;
+
+rule "Room request 15"
+when
+    $s: SensorRequest(type == "camera", power == "IP", $roomId:roomId)
+then
+    System.out.println("Room request 15");
+    insert(new WorkRequest($roomId,"dedicated_server_for_memory"));
+end;
+
+rule "Room request 16"
+when
+    $s: SensorRequest(type == "camera", power == "wifi", $roomId:roomId)
+    $wreq: WorkRequest(roomId == $roomId, type == "setup_app")
+    $wres: WorkResponse(type == "setup_app", roomId == $roomId, success == false)
+then
+    System.out.println("Room request 16");
+    insert(new ExtraGearRequest($roomId,"service_monitoring"));
+end;
+
+rule "Room request 17"
+when
+    $eg1: ExtraGearRequest(type == "service_monitoring", $roomId: roomId)
+    $eg2: ExtraGearResponse(type == "service_monitoring", roomId == $roomId, response == false)
+    $s: SensorRequest(type == "camera", power == "wifi", roomId == $roomId)
+then
+    System.out.println("Room request 17");
+    modify($s){setPower("IP")};
+end;

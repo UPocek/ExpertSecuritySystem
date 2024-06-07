@@ -1,0 +1,458 @@
+package com.ftn.sbnz.rules.cep_product;
+
+import java.util.ArrayList;
+import java.time.LocalDateTime;
+
+import com.ftn.sbnz.model.events.ProductEvent;
+import com.ftn.sbnz.model.events.ProductTaken;
+import com.ftn.sbnz.model.models.AggregateProduct;
+import com.ftn.sbnz.model.models.RequestProductAggregate;
+import com.ftn.sbnz.model.models.ProductAggregationToStore;
+import com.ftn.sbnz.repository.IProductAggregationsRepository;
+
+import accumulate com.ftn.sbnz.accumulations.ArraySumProduct arraySum
+import accumulate com.ftn.sbnz.accumulations.ArrayCountProduct arrayCount
+
+global IProductAggregationsRepository productAggregatioinsRepository;
+
+
+rule "Rule 2"
+when
+    $take: ProductEvent(act == "take", $customerId:customerId, $productId:productId, $timeStamp:timeStamp, $price:price)
+    not(ProductEvent(act == "return", customerId == $customerId, productId == $productId, this after[0, 15s] $take))
+then
+    insert(new ProductTaken($customerId, $productId, $timeStamp,$price));
+end;
+
+//aggregations for taken
+//5min
+rule "Create request for 5min aggregation 1"
+  timer (cron: 0/5 * * * * ?)
+  when
+    $p: ProductTaken($productId:productId)
+    not AggregateProduct(act == "take",interval == 5, productId == $productId)
+  then
+    System.out.println("Create request for 5min aggregation");
+    insert(new RequestProductAggregate(5, $productId, "taken"));
+    delete($p);
+end;
+
+rule "Resolve request for 5min aggregation"
+  when 
+    $request: RequestProductAggregate(interval == 5, act == "taken", $productId:productId)
+    accumulate($products : ProductTaken(productId == $productId, $price: price) over window:time(5m),
+        $sum:sum($price),
+      $count: count(1)
+    )
+  then
+    System.out.println("Resolve request for 5min aggregation");
+    AggregateProduct agg = new AggregateProduct(5, 0, $productId, "take", $count,$sum
+    );
+    productAggregatioinsRepository.save(new ProductAggregationToStore(agg));
+    productAggregatioinsRepository.flush();
+    insert(agg);
+    delete($request);
+end;
+
+// 15 minute aggregation
+
+rule "Create request 1 for 15min aggregation"
+no-loop
+  when
+    $a1: AggregateProduct(interval == 5, act == "take", $productId:productId)
+    not RequestProductAggregate(interval == 15, productId == $productId, act == "taken")
+    $aggregations : ArrayList(size == 2) from collect(AggregateProduct(this != $a1, interval == 5, isProcessed == false, productId == $productId, act == "take"))
+  then
+    System.out.println("Create request 1 for 15min aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregateProduct)aggregation)) { setProcessed(true) };
+    }
+    insert(new RequestProductAggregate(15, $productId, "taken"));
+end;
+
+rule "Create request 2 for 15min aggregation"
+no-loop
+  when
+    $a1:AggregateProduct(interval == 5, act == "take", $productId:productId)
+    $aggregations : ArrayList() from collect(AggregateProduct(interval == 5, isProcessed == false, productId == $productId,act == "take"))
+    not (AggregateProduct(interval == 5,act == "take")) and eval((LocalDateTime.now().getSecond() + LocalDateTime.now().getMinute() * 60) % 15 == 0)
+    not RequestProductAggregate(interval == 15, productId == $productId, act == "taken")
+  then
+    System.out.println("Create request 2 for 15min aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregateProduct)aggregation)) { setProcessed(true) };
+      System.out.println(((AggregateProduct)aggregation).isProcessed());
+    }
+    insert(new RequestProductAggregate(15, $productId, "taken"));
+end;
+
+rule "Resolve request for 15min aggregation"
+no-loop
+  when 
+    $request: RequestProductAggregate(interval == 15, act == "taken",$productId: productId)
+    accumulate($products : AggregateProduct($this: this, interval == 5, isProcessed == true, productId == $productId,act == "take") over window:time(15m),
+      $sum: arraySum($this),
+      $count: arrayCount($this),
+      $aggregations: collectList($products)
+    )
+  then
+  System.out.println("Resolved request for 15min aggregation");
+    AggregateProduct agg = new AggregateProduct(15, 5, $productId, "take",$count,$sum
+    );
+
+    for(Object aggregation : $aggregations) {
+      delete(aggregation);
+    }
+
+    productAggregatioinsRepository.save(new ProductAggregationToStore(agg));
+    productAggregatioinsRepository.flush();
+    insert(agg);
+    delete($request);
+end;
+
+// 30 minute aggregation
+
+rule "Create request 1 for 30min aggregation"
+no-loop
+  when
+    $a1: AggregateProduct(interval == 15,act == "take", $productId:productId)
+    not RequestProductAggregate(interval == 30, productId == $productId, act == "taken")
+    $aggregations : ArrayList(size == 1) from collect(AggregateProduct(this != $a1, interval == 15, isProcessed == false, productId == $productId,act == "take"))
+  then
+    System.out.println("Create request 1 for 30min aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregateProduct)aggregation)) { setProcessed(true) };
+    }
+    insert(new RequestProductAggregate(30, $productId,"taken"));
+end;
+
+rule "Create request 2 for 30min aggregation"
+no-loop
+  when
+    $a1: AggregateProduct(interval == 15, $productId:productId)
+    $aggregations : ArrayList() from collect(AggregateProduct(interval == 15, isProcessed == false, productId == $productId,act == "take"))
+    not (AggregateProduct(interval == 15,act == "take")) and eval((LocalDateTime.now().getSecond() + LocalDateTime.now().getMinute() * 60) % 30 == 0)
+    not RequestProductAggregate(interval == 30, productId == $productId,act == "taken")
+  then
+    System.out.println("Create request 2 for 30min aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregateProduct)aggregation)) { setProcessed(true) };
+      
+    }
+    insert(new RequestProductAggregate(30, $productId,"taken"));
+end;
+
+rule "Resolve request for 30min aggregation"
+no-loop
+  when 
+    $request: RequestProductAggregate(interval == 30, $productId: productId,act == "taken")
+    accumulate($products : AggregateProduct($this: this, interval == 15, isProcessed == true, productId == $productId,act == "take") over window:time(30m),
+      $sum: arraySum($this),
+      $count: arrayCount($this),
+      $aggregations: collectList($products)
+    )
+  then
+  System.out.println("Resolved request for 30min aggregation");
+    AggregateProduct agg = new AggregateProduct(30, 15, $productId, "take",$count,$sum);
+
+    for(Object aggregation : $aggregations) {
+      delete(aggregation);
+    }
+    productAggregatioinsRepository.save(new ProductAggregationToStore(agg));
+    productAggregatioinsRepository.flush();
+    insert(agg);
+    delete($request);
+end;
+
+// 1 hour aggregation
+
+rule "Create request 1 for 1h aggregation"
+no-loop
+  when
+    $a1: AggregateProduct(interval == 30,act == "take", $productId:productId)
+    not RequestProductAggregate(interval == 60, productId == $productId, act == "taken")
+    $aggregations : ArrayList(size == 1) from collect(AggregateProduct(this != $a1, interval == 30, isProcessed == false, productId == $productId,act == "take"))
+  then
+    System.out.println("Create request 1 for 1h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregateProduct)aggregation)) { setProcessed(true) };
+      
+    }
+    insert(new RequestProductAggregate(60, $productId,"taken"));
+end;
+
+rule "Create request 2 for 1h aggregation"
+no-loop
+  when
+    $a1: AggregateProduct(interval == 30,act == "take", $productId:productId)
+    $aggregations : ArrayList() from collect(AggregateProduct(interval == 30, isProcessed == false, productId == $productId,act == "take"))
+    not (AggregateProduct(interval == 30,act == "take")) and eval((LocalDateTime.now().getSecond() + LocalDateTime.now().getMinute() * 60 + LocalDateTime.now().getMinute() * 60) % 60 == 0)
+    not RequestProductAggregate(interval == 60, productId == $productId, act == "taken")
+  then
+    System.out.println("Create request 2 for 1h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregateProduct)aggregation)) { setProcessed(true) };
+      
+    }
+    insert(new RequestProductAggregate(60, $productId,"taken"));
+end;
+
+rule "Resolve request for 1h aggregation"
+no-loop
+  when 
+    $request: RequestProductAggregate(interval == 60, $productId: productId, act == "taken")
+    accumulate($products : AggregateProduct($this: this, interval == 30, isProcessed == true, productId == $productId,act == "take") over window:time(1h),
+      $sum: arraySum($this),
+      $count: arrayCount($this),
+      $aggregations: collectList($products)
+    )
+  then
+  System.out.println("Resolved request for 1h aggregation");
+    AggregateProduct agg = new AggregateProduct(60, 30, $productId, "take", $count, $sum
+    );
+
+    for(Object aggregation : $aggregations) {
+      delete(aggregation);
+    }
+    productAggregatioinsRepository.save(new ProductAggregationToStore(agg));
+    productAggregatioinsRepository.flush();
+    insert(agg);
+    delete($request);
+end;
+
+// 2 hour aggregation
+
+rule "Create request 1 for 2h aggregation"
+no-loop
+  when
+    $a1: AggregateProduct(interval == 60,act == "take", $productId:productId)
+    not RequestProductAggregate(interval == 120, productId == $productId, act == "taken")
+    $aggregations : ArrayList(size == 1) from collect(AggregateProduct(this != $a1, interval == 60, isProcessed == false, productId == $productId,act == "take"))
+  then
+    System.out.println("Create request 1 for 2h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregateProduct)aggregation)) { setProcessed(true) };
+      
+    }
+    insert(new RequestProductAggregate(120, $productId,"taken"));
+end;
+
+rule "Create request 2 for 2h aggregation"
+no-loop
+  when
+    $a1:AggregateProduct(interval == 60,act == "take", $productId:productId)
+    $aggregations : ArrayList() from collect(AggregateProduct(interval == 60, isProcessed == false, productId == $productId,act == "take"))
+    not (AggregateProduct(interval == 60,act == "take")) and eval((LocalDateTime.now().getSecond() + LocalDateTime.now().getMinute() * 60 + LocalDateTime.now().getMinute() * 60) % 120 == 0)
+    not RequestProductAggregate(interval == 120, productId == $productId, act == "taken")
+  then
+    System.out.println("Create request 2 for 2h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregateProduct)aggregation)) { setProcessed(true) };
+      
+    }
+    insert(new RequestProductAggregate(120, $productId,"taken"));
+end;
+
+rule "Resolve request for 2h aggregation"
+no-loop
+  when 
+    $request: RequestProductAggregate(interval == 120,act == "taken", $productId: productId)
+    accumulate($products : AggregateProduct($this: this, interval == 60, isProcessed == true, productId == $productId,act == "take") over window:time(2h),
+      $sum: arraySum($this),
+      $count: arrayCount($this),
+      $aggregations: collectList($products)
+    )
+  then
+  System.out.println("Resolved request for 2h aggregation");
+    AggregateProduct agg = new AggregateProduct(120, 60, $productId, "take", $count, $sum
+    );
+
+    for(Object aggregation : $aggregations) {
+      delete(aggregation);
+    }
+    productAggregatioinsRepository.save(new ProductAggregationToStore(agg));
+    productAggregatioinsRepository.flush();
+    insert(agg);
+    delete($request);
+end;
+
+// 4 hour aggregation
+
+rule "Create request 1 for 4h aggregation"
+no-loop
+  when
+    $a1: AggregateProduct(interval == 120,act == "take", $productId:productId)
+    not RequestProductAggregate(interval == 240, productId == $productId, act == "taken")
+    $aggregations : ArrayList(size == 1) from collect(AggregateProduct(this != $a1, interval == 120, isProcessed == false, productId == $productId,act == "take"))
+  then
+    System.out.println("Create request 1 for 4h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregateProduct)aggregation)) { setProcessed(true) };
+      
+    }
+    insert(new RequestProductAggregate(240, $productId,"taken"));
+end;
+
+rule "Create request 2 for 4h aggregation"
+no-loop
+  when
+    $a1:AggregateProduct(interval == 120,act == "take", $productId:productId)
+    $aggregations : ArrayList() from collect(AggregateProduct(interval == 120, isProcessed == false, productId == $productId,act == "take"))
+    not (AggregateProduct(interval == 120,act == "take")) and eval((LocalDateTime.now().getSecond() + LocalDateTime.now().getMinute() * 60 + LocalDateTime.now().getMinute() * 60) % 240 == 0)
+    not RequestProductAggregate(interval == 240, productId == $productId,act == "taken")
+  then
+    System.out.println("Create request 2 for 4h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregateProduct)aggregation)) { setProcessed(true) };
+      
+    }
+    insert(new RequestProductAggregate(240, $productId,"taken"));
+end;
+
+rule "Resolve request for 4h aggregation"
+no-loop
+  when 
+    $request: RequestProductAggregate(interval == 240,act == "taken", $productId: productId)
+    accumulate($products : AggregateProduct($this: this, interval == 120, isProcessed == true, productId == $productId,act == "take") over window:time(4h),
+      $sum: arraySum($this),
+      $count: arrayCount($this),
+      $aggregations: collectList($products)
+    )
+  then
+  System.out.println("Resolved request for 4h aggregation");
+    AggregateProduct agg = new AggregateProduct(240, 120, $productId, "take", $count, $sum
+    );
+
+    for(Object aggregation : $aggregations) {
+     delete(aggregation);
+    }
+    productAggregatioinsRepository.save(new ProductAggregationToStore(agg));
+    productAggregatioinsRepository.flush();
+    insert(agg);
+    delete($request);
+end;
+
+// 8 hour aggregation
+
+rule "Create request 1 for 8h aggregation"
+no-loop
+  when
+    $a1: AggregateProduct(interval == 240,act == "take", $productId:productId)
+    not RequestProductAggregate(interval == 480, productId == $productId,act == "taken")
+    $aggregations : ArrayList(size == 1) from collect(AggregateProduct(this != $a1, interval == 240, isProcessed == false, productId == $productId,act == "take"))
+  then
+    System.out.println("Create request 1 for 8h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregateProduct)aggregation)) { setProcessed(true) };
+      
+    }
+    insert(new RequestProductAggregate(480, $productId,"taken"));
+end;
+
+rule "Create request 2 for 8h aggregation"
+no-loop
+  when
+    $a1:AggregateProduct(interval == 240,act == "take", $productId:productId)
+    $aggregations : ArrayList() from collect(AggregateProduct(interval == 240, isProcessed == false, productId == $productId,act == "take"))
+    not (AggregateProduct(interval == 240,act == "take")) and eval((LocalDateTime.now().getSecond() + LocalDateTime.now().getMinute() * 60 + LocalDateTime.now().getMinute() * 60) % 480 == 0)
+    not RequestProductAggregate(interval == 480, productId == $productId,act == "taken")
+  then
+    System.out.println("Create request 2 for 8h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregateProduct)aggregation)) { setProcessed(true) };
+      
+    }
+    insert(new RequestProductAggregate(480, $productId,"taken"));
+end;
+
+rule "Resolve request for 8h aggregation"
+no-loop
+  when 
+    $request: RequestProductAggregate(interval == 480,act == "taken", $productId: productId)
+    accumulate($products : AggregateProduct($this: this, interval == 240, isProcessed == true, productId == $productId,act == "take") over window:time(8h),
+      $sum: arraySum($this),
+      $count: arrayCount($this),
+      $aggregations: collectList($products)
+    )
+  then
+  System.out.println("Resolved request for 8h aggregation");
+    AggregateProduct agg = new AggregateProduct(480, 240, $productId, "take", $count
+    , $sum);
+
+    for(Object aggregation : $aggregations) {
+      delete(aggregation);
+    }
+    productAggregatioinsRepository.save(new ProductAggregationToStore(agg));
+    productAggregatioinsRepository.flush();
+    insert(agg);
+    delete($request);
+end;
+
+// 24 hour aggregation
+
+rule "Create request 1 for 24h aggregation"
+no-loop
+  when
+    $a1: AggregateProduct(interval == 480,act == "take", $productId:productId)
+    not RequestProductAggregate(interval == 1440, productId == $productId,act == "taken")
+    $aggregations : ArrayList(size == 2) from collect(AggregateProduct(this != $a1, interval == 480, isProcessed == false, productId == $productId,act == "take"))
+  then
+    System.out.println("Create request 1 for 24h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregateProduct)aggregation)) { setProcessed(true) };
+      
+    }
+    insert(new RequestProductAggregate(1440, $productId,"taken"));
+end;
+
+rule "Create request 2 for 24h aggregation"
+no-loop
+  when
+    $a1: AggregateProduct(interval == 480,act == "take", $productId:productId)
+    $aggregations : ArrayList() from collect(AggregateProduct(interval == 480, isProcessed == false, productId == $productId,act == "take"))
+    not (AggregateProduct(interval == 480,act == "take")) and eval((LocalDateTime.now().getSecond() + LocalDateTime.now().getMinute() * 60 + LocalDateTime.now().getMinute() * 60) % 1440 == 0)
+    not RequestProductAggregate(interval == 1440, productId == $productId,act == "taken")
+  then
+    System.out.println("Create request 2 for 24h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregateProduct)aggregation)) { setProcessed(true) };
+    }
+    insert(new RequestProductAggregate(1440, $productId,"taken"));
+end;
+
+rule "Resolve request for 24h aggregation"
+no-loop
+  when 
+    $request: RequestProductAggregate(interval == 1440,act == "taken",$productId: productId)
+    accumulate($products : AggregateProduct($this: this, interval == 480, isProcessed == true, productId == $productId,act == "take") over window:time(24h),
+      $sum: arraySum($this),
+      $count: arrayCount($this),
+      $aggregations: collectList($products)
+    )
+  then
+  System.out.println("Resolved request for 24h aggregation");
+    AggregateProduct agg = new AggregateProduct(1440, 480, $productId, "take", $count, $sum
+    );
+
+    for(Object aggregation : $aggregations) {
+      delete(aggregation);
+    }
+    productAggregatioinsRepository.save(new ProductAggregationToStore(agg));
+    productAggregatioinsRepository.flush();
+    delete($request);
+end;
+

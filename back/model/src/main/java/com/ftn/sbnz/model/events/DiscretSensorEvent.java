@@ -8,9 +8,7 @@ import org.kie.api.definition.type.Role;
 public class DiscretSensorEvent {
     public Long roomId;
     public Long deviceId;
-    public Long timestamp;
     public String type;
-    public boolean processed;
     public boolean detected;
 
     public DiscretSensorEvent() {
@@ -20,23 +18,12 @@ public class DiscretSensorEvent {
         this.roomId = roomId;
         this.deviceId = deviceId;
         this.type = type;
-        this.processed = false;
         this.detected = true;
     }
 
-    public DiscretSensorEvent(Long roomId, Long timestamp, String type, boolean processed) {
+    public DiscretSensorEvent(Long roomId, String type) {
         this.roomId = roomId;
-        this.timestamp = timestamp;
         this.type = type;
-        this.processed = processed;
-    }
-
-    public Long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(Long timestamp) {
-        this.timestamp = timestamp;
     }
 
     public String getType() {
@@ -45,14 +32,6 @@ public class DiscretSensorEvent {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public boolean isProcessed() {
-        return processed;
-    }
-
-    public void setProcessed(boolean processed) {
-        this.processed = processed;
     }
 
     public Long getRoomId() {
