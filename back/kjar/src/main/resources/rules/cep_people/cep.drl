@@ -1,0 +1,486 @@
+package com.ftn.sbnz.rules.cep_people;
+
+import java.util.ArrayList;
+import java.time.LocalDateTime;
+import com.ftn.sbnz.model.events.PersonDetectionEvent;
+import com.ftn.sbnz.model.models.AggregatedDetection;
+import com.ftn.sbnz.model.models.AggregatePeople;
+import com.ftn.sbnz.model.models.Aggregation;
+import com.ftn.sbnz.model.models.AggregationToStore
+import com.ftn.sbnz.repository.IAggregationsRepository;
+
+import accumulate com.ftn.sbnz.accumulations.ArrayMin arrayMin
+import accumulate com.ftn.sbnz.accumulations.ArrayMax arrayMax
+import accumulate com.ftn.sbnz.accumulations.ArrayAverage arrayAverage
+import accumulate com.ftn.sbnz.accumulations.ArraySum arraySum
+import accumulate com.ftn.sbnz.accumulations.ArrayCount arrayCount
+
+global IAggregationsRepository aggregationRepository;
+
+
+// 5 minute aggregation
+
+rule "Create request for 5min aggregation"
+  timer (cron: 0/5 * * * * ?)
+  when
+    $p:PersonDetectionEvent($location: location, $numberOfPeople: numberOfPeople)
+    not AggregatePeople(interval == 5, location == $location)
+  then
+    System.out.println("Create request for 5min aggregation");
+    insert(new AggregatePeople(5, $location));
+    delete($p);
+end;
+
+rule "Resolve request for 5min aggregation"
+  when 
+    $request: AggregatePeople(interval == 5, $location: location)
+    accumulate($people : PersonDetectionEvent(location == $location, $numberOfPeople: numberOfPeople) over window:time(5s),
+      $min: min($numberOfPeople),
+      $max: max($numberOfPeople),
+      $sum: sum($numberOfPeople),
+      $average: average($numberOfPeople),
+      $count: count($numberOfPeople)
+    )
+  then
+    System.out.println("Resolve request for 5min aggregation");
+    AggregatedDetection agg = new AggregatedDetection(5, 0, $location, new Aggregation(
+      $min, $max, $sum, $average, $count
+    ));
+    aggregationRepository.save(new AggregationToStore(agg));
+    aggregationRepository.flush();
+    insert(agg);
+    delete($request);
+end;
+
+// // 15 minute aggregation
+
+rule "Create request 1 for 15min aggregation"
+no-loop
+  when
+    $a1: AggregatedDetection(interval == 5, $location:location)
+    not AggregatePeople(interval == 15, location == $location)
+    $aggregations : ArrayList(size == 2) from collect(AggregatedDetection(this != $a1, interval == 5, isProcessed == false, location == $location))
+  then
+    System.out.println("Create request 1 for 15min aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregatedDetection)aggregation)) { setProcessed(true) };
+     
+    }
+    insert(new AggregatePeople(15, $location));
+end;
+
+rule "Create request 2 for 15min aggregation"
+no-loop
+  when
+    $a1: AggregatedDetection(interval == 5, $location:location)
+    $aggregations : ArrayList() from collect(AggregatedDetection(interval == 5, isProcessed == false, location == $location))
+    not (AggregatedDetection(interval == 5)) and eval((LocalDateTime.now().getSecond() + LocalDateTime.now().getMinute() * 60) % 15 == 0)
+    not AggregatePeople(interval == 15, location == $location)
+  then
+    System.out.println("Create request 2 for 15min aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregatedDetection)aggregation)) { setProcessed(true) };
+     
+    }
+    insert(new AggregatePeople(15, $location));
+end;
+
+rule "Resolve request for 15min aggregation"
+no-loop
+  when 
+    $request: AggregatePeople(interval == 15, $location: location)
+    accumulate($people : AggregatedDetection($this: this, interval == 5, isProcessed == true, location == $location) over window:time(15s),
+      $min: arrayMin($this),
+      $max: arrayMax($this),
+      $sum: arraySum($this),
+      $average: arrayAverage($this),
+      $count: arrayCount($this),
+      $aggregations: collectList($people)
+    )
+  then
+  System.out.println("Resolved request for 15min aggregation");
+    AggregatedDetection agg = new AggregatedDetection(15, 5, $location, new Aggregation(
+      $min, $max, $sum, $average, $count
+    ));
+
+    for(Object aggregation : $aggregations) {
+      delete(aggregation);
+    }
+
+    aggregationRepository.save(new AggregationToStore(agg));
+    aggregationRepository.flush();
+    insert(agg);
+    delete($request);
+end;
+
+// 30 minute aggregation
+
+rule "Create request 1 for 30min aggregation"
+no-loop
+  when
+    $a1: AggregatedDetection(interval == 15, $location:location)
+    not AggregatePeople(interval == 30, location == $location)
+    $aggregations : ArrayList(size == 1) from collect(AggregatedDetection(this != $a1, interval == 15, isProcessed == false, location == $location))
+  then
+    System.out.println("Create request 1 for 30min aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregatedDetection)aggregation)) { setProcessed(true) };
+     
+    }
+    insert(new AggregatePeople(30, $location));
+end;
+
+rule "Create request 2 for 30min aggregation"
+no-loop
+  when
+    $a1: AggregatedDetection(interval == 15, $location:location)
+    $aggregations : ArrayList() from collect(AggregatedDetection(interval == 15, isProcessed == false, location == $location))
+    not (AggregatedDetection(interval == 15)) and eval((LocalDateTime.now().getSecond() + LocalDateTime.now().getMinute() * 60) % 30 == 0)
+    not AggregatePeople(interval == 30, location == $location)
+  then
+    System.out.println("Create request 2 for 30min aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregatedDetection)aggregation)) { setProcessed(true) };
+     
+    }
+    insert(new AggregatePeople(30, $location));
+end;
+
+rule "Resolve request for 30min aggregation"
+no-loop
+  when 
+    $request: AggregatePeople(interval == 30, $location: location)
+    accumulate($people : AggregatedDetection($this: this, interval == 15, isProcessed == true, location == $location) over window:time(30m),
+      $min: arrayMin($this),
+      $max: arrayMax($this),
+      $sum: arraySum($this),
+      $average: arrayAverage($this),
+      $count: arrayCount($this),
+      $aggregations: collectList($people)
+    )
+  then
+  System.out.println("Resolved request for 30min aggregation");
+    AggregatedDetection agg = new AggregatedDetection(30, 15, $location, new Aggregation(
+      $min, $max, $sum, $average, $count
+    ));
+
+    for(Object aggregation : $aggregations) {
+      delete(aggregation);
+    }
+    aggregationRepository.save(new AggregationToStore(agg));
+    aggregationRepository.flush();
+    insert(agg);
+    delete($request);
+end;
+
+// 1 hour aggregation
+
+rule "Create request 1 for 1h aggregation"
+no-loop
+  when
+    $a1: AggregatedDetection(interval == 30, $location:location)
+    not AggregatePeople(interval == 60, location == $location)
+    $aggregations : ArrayList(size == 1) from collect(AggregatedDetection(this != $a1, interval == 30, isProcessed == false, location == $location))
+  then
+    System.out.println("Create request 1 for 1h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregatedDetection)aggregation)) { setProcessed(true) };
+     
+    }
+    insert(new AggregatePeople(60, $location));
+end;
+
+rule "Create request 2 for 1h aggregation"
+no-loop
+  when
+    $a1: AggregatedDetection(interval == 30, $location:location)
+    $aggregations : ArrayList() from collect(AggregatedDetection(interval == 30, isProcessed == false, location == $location))
+    not (AggregatedDetection(interval == 30)) and eval((LocalDateTime.now().getSecond() + LocalDateTime.now().getMinute() * 60 + LocalDateTime.now().getMinute() * 60) % 60 == 0)
+    not AggregatePeople(interval == 60, location == $location)
+  then
+    System.out.println("Create request 2 for 1h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregatedDetection)aggregation)) { setProcessed(true) };
+     
+    }
+    insert(new AggregatePeople(60, $location));
+end;
+
+rule "Resolve request for 1h aggregation"
+no-loop
+  when 
+    $request: AggregatePeople(interval == 60, $location: location)
+    accumulate($people : AggregatedDetection($this: this, interval == 30, isProcessed == true, location == $location) over window:time(1h),
+      $min: arrayMin($this),
+      $max: arrayMax($this),
+      $sum: arraySum($this),
+      $average: arrayAverage($this),
+      $count: arrayCount($this),
+      $aggregations: collectList($people)
+    )
+  then
+  System.out.println("Resolved request for 1h aggregation");
+    AggregatedDetection agg = new AggregatedDetection(60, 30, $location, new Aggregation(
+      $min, $max, $sum, $average, $count
+    ));
+
+    for(Object aggregation : $aggregations) {
+      delete(aggregation);
+    }
+    aggregationRepository.save(new AggregationToStore(agg));
+    aggregationRepository.flush();
+    insert(agg);
+    delete($request);
+end;
+
+// 2 hour aggregation
+
+rule "Create request 1 for 2h aggregation"
+no-loop
+  when
+    $a1: AggregatedDetection(interval == 60, $location:location)
+    not AggregatePeople(interval == 120, location == $location)
+    $aggregations : ArrayList(size == 1) from collect(AggregatedDetection(this != $a1, interval == 60, isProcessed == false, location == $location))
+  then
+    System.out.println("Create request 1 for 2h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregatedDetection)aggregation)) { setProcessed(true) };
+     
+    }
+    insert(new AggregatePeople(120, $location));
+end;
+
+rule "Create request 2 for 2h aggregation"
+no-loop
+  when
+    $a1: AggregatedDetection(interval == 60, $location:location)
+    $aggregations : ArrayList() from collect(AggregatedDetection(interval == 60, isProcessed == false, location == $location))
+    not (AggregatedDetection(interval == 60)) and eval((LocalDateTime.now().getSecond() + LocalDateTime.now().getMinute() * 60 + LocalDateTime.now().getMinute() * 60) % 120 == 0)
+    not AggregatePeople(interval == 120, location == $location)
+  then
+    System.out.println("Create request 2 for 2h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregatedDetection)aggregation)) { setProcessed(true) };
+     
+    }
+    insert(new AggregatePeople(120, $location));
+end;
+
+rule "Resolve request for 2h aggregation"
+no-loop
+  when 
+    $request: AggregatePeople(interval == 120, $location: location)
+    accumulate($people : AggregatedDetection($this: this, interval == 60, isProcessed == true, location == $location) over window:time(2h),
+      $min: arrayMin($this),
+      $max: arrayMax($this),
+      $sum: arraySum($this),
+      $average: arrayAverage($this),
+      $count: arrayCount($this),
+      $aggregations: collectList($people)
+    )
+  then
+  System.out.println("Resolved request for 2h aggregation");
+    AggregatedDetection agg = new AggregatedDetection(120, 60, $location, new Aggregation(
+      $min, $max, $sum, $average, $count
+    ));
+
+    for(Object aggregation : $aggregations) {
+      delete(aggregation);
+    }
+    aggregationRepository.save(new AggregationToStore(agg));
+    aggregationRepository.flush();
+    insert(agg);
+    delete($request);
+end;
+
+// 4 hour aggregation
+
+rule "Create request 1 for 4h aggregation"
+no-loop
+  when
+    $a1: AggregatedDetection(interval == 120, $location:location)
+    not AggregatePeople(interval == 240, location == $location)
+    $aggregations : ArrayList(size == 1) from collect(AggregatedDetection(this != $a1, interval == 120, isProcessed == false, location == $location))
+  then
+    System.out.println("Create request 1 for 4h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregatedDetection)aggregation)) { setProcessed(true) };
+     
+    }
+    insert(new AggregatePeople(240, $location));
+end;
+
+rule "Create request 2 for 4h aggregation"
+no-loop
+  when
+    $a1: AggregatedDetection(interval == 120, $location:location)
+    $aggregations : ArrayList() from collect(AggregatedDetection(interval == 120, isProcessed == false, location == $location))
+    not (AggregatedDetection(interval == 120)) and eval((LocalDateTime.now().getSecond() + LocalDateTime.now().getMinute() * 60 + LocalDateTime.now().getMinute() * 60) % 240 == 0)
+    not AggregatePeople(interval == 240, location == $location)
+  then
+    System.out.println("Create request 2 for 4h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregatedDetection)aggregation)) { setProcessed(true) };
+     
+    }
+    insert(new AggregatePeople(240, $location));
+end;
+
+rule "Resolve request for 4h aggregation"
+no-loop
+  when 
+    $request: AggregatePeople(interval == 240, $location: location)
+    accumulate($people : AggregatedDetection($this: this, interval == 120, isProcessed == true, location == $location) over window:time(4h),
+      $min: arrayMin($this),
+      $max: arrayMax($this),
+      $sum: arraySum($this),
+      $average: arrayAverage($this),
+      $count: arrayCount($this),
+      $aggregations: collectList($people)
+    )
+  then
+  System.out.println("Resolved request for 4h aggregation");
+    AggregatedDetection agg = new AggregatedDetection(240, 120, $location, new Aggregation(
+      $min, $max, $sum, $average, $count
+    ));
+
+    for(Object aggregation : $aggregations) {
+      delete(aggregation);
+    }
+    aggregationRepository.save(new AggregationToStore(agg));
+    aggregationRepository.flush();
+    insert(agg);
+    delete($request);
+end;
+
+// 8 hour aggregation
+
+rule "Create request 1 for 8h aggregation"
+no-loop
+  when
+    $a1: AggregatedDetection(interval == 240, $location:location)
+    not AggregatePeople(interval == 480, location == $location)
+    $aggregations : ArrayList(size == 1) from collect(AggregatedDetection(this != $a1, interval == 240, isProcessed == false, location == $location))
+  then
+    System.out.println("Create request 1 for 8h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregatedDetection)aggregation)) { setProcessed(true) };
+     
+    }
+    insert(new AggregatePeople(480, $location));
+end;
+
+rule "Create request 2 for 8h aggregation"
+no-loop
+  when
+    $a1: AggregatedDetection(interval == 240, $location:location)
+    $aggregations : ArrayList() from collect(AggregatedDetection(interval == 240, isProcessed == false, location == $location))
+    not (AggregatedDetection(interval == 240)) and eval((LocalDateTime.now().getSecond() + LocalDateTime.now().getMinute() * 60 + LocalDateTime.now().getMinute() * 60) % 480 == 0)
+    not AggregatePeople(interval == 480, location == $location)
+  then
+    System.out.println("Create request 2 for 8h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregatedDetection)aggregation)) { setProcessed(true) };
+     
+    }
+    insert(new AggregatePeople(480, $location));
+end;
+
+rule "Resolve request for 8h aggregation"
+no-loop
+  when 
+    $request: AggregatePeople(interval == 480, $location: location)
+    accumulate($people : AggregatedDetection($this: this, interval == 240, isProcessed == true, location == $location) over window:time(8h),
+      $min: arrayMin($this),
+      $max: arrayMax($this),
+      $sum: arraySum($this),
+      $average: arrayAverage($this),
+      $count: arrayCount($this),
+      $aggregations: collectList($people)
+    )
+  then
+  System.out.println("Resolved request for 8h aggregation");
+    AggregatedDetection agg = new AggregatedDetection(480, 240, $location, new Aggregation(
+      $min, $max, $sum, $average, $count
+    ));
+
+    for(Object aggregation : $aggregations) {
+      delete(aggregation);
+    }
+    aggregationRepository.save(new AggregationToStore(agg));
+    aggregationRepository.flush();
+    insert(agg);
+    delete($request);
+end;
+
+// 24 hour aggregation
+
+rule "Create request 1 for 24h aggregation"
+no-loop
+  when
+    $a1: AggregatedDetection(interval == 480, $location:location)
+    not AggregatePeople(interval == 1440, location == $location)
+    $aggregations : ArrayList(size == 2) from collect(AggregatedDetection(this != $a1, interval == 480, isProcessed == false, location == $location))
+  then
+    System.out.println("Create request 1 for 24h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregatedDetection)aggregation)) { setProcessed(true) };
+     
+    }
+    insert(new AggregatePeople(1440, $location));
+end;
+
+rule "Create request 2 for 24h aggregation"
+no-loop
+  when
+    $a1:AggregatedDetection(interval == 480, $location:location)
+    $aggregations : ArrayList() from collect(AggregatedDetection(interval == 480, isProcessed == false, location == $location))
+    not (AggregatedDetection(interval == 480)) and eval((LocalDateTime.now().getSecond() + LocalDateTime.now().getMinute() * 60 + LocalDateTime.now().getMinute() * 60) % 1440 == 0)
+    not AggregatePeople(interval == 1440, location == $location)
+  then
+    System.out.println("Create request 2 for 24h aggregation");
+    modify($a1) { setProcessed(true) };
+    for(Object aggregation : $aggregations) {
+      modify(((AggregatedDetection)aggregation)) { setProcessed(true) };
+    }
+    insert(new AggregatePeople(1440, $location));
+end;
+
+rule "Resolve request for 24h aggregation"
+no-loop
+  when 
+    $request: AggregatePeople(interval == 1440, $location: location)
+    accumulate($people : AggregatedDetection($this: this, interval == 480, isProcessed == true, location == $location) over window:time(24h),
+      $min: arrayMin($this),
+      $max: arrayMax($this),
+      $sum: arraySum($this),
+      $average: arrayAverage($this),
+      $count: arrayCount($this),
+      $aggregations: collectList($people)
+    )
+  then
+  System.out.println("Resolved request for 24h aggregation");
+    AggregatedDetection agg = new AggregatedDetection(1440, 480, $location, new Aggregation(
+      $min, $max, $sum, $average, $count
+    ));
+
+    for(Object aggregation : $aggregations) {
+      delete(aggregation);
+    }
+    aggregationRepository.save(new AggregationToStore(agg));
+    aggregationRepository.flush();
+    delete($request);
+end;

@@ -16,14 +16,29 @@ import org.springframework.stereotype.Service;
 import com.ftn.sbnz.model.models.AggregatedDetection;
 import com.ftn.sbnz.model.models.Aggregation;
 import com.ftn.sbnz.model.models.AggregationToStore;
+import com.ftn.sbnz.model.models.Camera;
+import com.ftn.sbnz.model.models.ContinuousSensor;
 import com.ftn.sbnz.model.models.Room;
+import com.ftn.sbnz.model.models.Security;
 import com.ftn.sbnz.repository.IAggregationsRepository;
+import com.ftn.sbnz.repository.ICameraRepository;
+import com.ftn.sbnz.repository.IContinuousSensorRepository;
 import com.ftn.sbnz.repository.IRoomRepository;
+import com.ftn.sbnz.repository.ISecurityRepository;
 
 @Service
 public class LoadTestDataService {
     @Autowired
     private IRoomRepository roomRepository;
+
+    @Autowired
+    private ICameraRepository cameraRepository;
+
+    @Autowired
+    private ISecurityRepository securityRepository;
+
+    @Autowired
+    private IContinuousSensorRepository continuousSensorRepository;
 
     @Autowired
     private IAggregationsRepository aggregationsRepository;
@@ -33,132 +48,156 @@ public class LoadTestDataService {
     @Transactional
     public void createRoomHierarchy() {
         // Create root room
-        Room root = new Room("Root Room");
+        Room root = new Room("Store 1", null);
         root = roomRepository.save(root);
 
         // Create level 1 rooms
-        Room level1Room1 = new Room("Level 1 Room 1");
+        Room level1Room1 = new Room("Level 1 Room 1", root);
         level1Room1.setIsContainedIn(root);
         level1Room1 = roomRepository.save(level1Room1);
 
-        Room level1Room2 = new Room("Level 1 Room 2");
+        Room level1Room2 = new Room("Level 1 Room 2", root);
         level1Room2.setIsContainedIn(root);
         level1Room2 = roomRepository.save(level1Room2);
 
         // Create level 2 rooms
-        Room level2Room1 = new Room("Level 2 Room 1");
-        level2Room1.setIsContainedIn(level1Room1);
-        level2Room1 = roomRepository.save(level2Room1);
+        // Room level2Room1 = new Room("Level 2 Room 1", root);
+        // level2Room1.setIsContainedIn(level1Room1);
+        // level2Room1 = roomRepository.save(level2Room1);
 
-        Room level2Room2 = new Room("Level 2 Room 2");
-        level2Room2.setIsContainedIn(level1Room1);
-        level2Room2 = roomRepository.save(level2Room2);
+        // Room level2Room2 = new Room("Level 2 Room 2", root);
+        // level2Room2.setIsContainedIn(level1Room1);
+        // level2Room2 = roomRepository.save(level2Room2);
 
-        Room level2Room3 = new Room("Level 2 Room 3");
-        level2Room3.setIsContainedIn(level1Room2);
-        level2Room3 = roomRepository.save(level2Room3);
+        // Room level2Room3 = new Room("Level 2 Room 3", root);
+        // level2Room3.setIsContainedIn(level1Room2);
+        // level2Room3 = roomRepository.save(level2Room3);
 
-        Room level2Room4 = new Room("Level 2 Room 4");
-        level2Room4.setIsContainedIn(level1Room2);
-        level2Room4 = roomRepository.save(level2Room4);
+        // Room level2Room4 = new Room("Level 2 Room 4", root);
+        // level2Room4.setIsContainedIn(level1Room2);
+        // level2Room4 = roomRepository.save(level2Room4);
 
-        // // Create level 3 rooms
-        Room level3Room1 = new Room("Level 3 Room 1");
-        level3Room1.setIsContainedIn(level2Room1);
-        level3Room1 = roomRepository.save(level3Room1);
+        // // // Create level 3 rooms
+        // Room level3Room1 = new Room("Level 3 Room 1", root);
+        // level3Room1.setIsContainedIn(level2Room1);
+        // level3Room1 = roomRepository.save(level3Room1);
 
-        Room level3Room2 = new Room("Level 3 Room 2");
-        level3Room2.setIsContainedIn(level2Room1);
-        level3Room2 = roomRepository.save(level3Room2);
+        // Room level3Room2 = new Room("Level 3 Room 2", root);
+        // level3Room2.setIsContainedIn(level2Room1);
+        // level3Room2 = roomRepository.save(level3Room2);
 
-        Room level3Room3 = new Room("Level 3 Room 3");
-        level3Room3.setIsContainedIn(level2Room2);
-        level3Room3 = roomRepository.save(level3Room3);
+        // Room level3Room3 = new Room("Level 3 Room 3", root);
+        // level3Room3.setIsContainedIn(level2Room2);
+        // level3Room3 = roomRepository.save(level3Room3);
 
-        Room level3Room4 = new Room("Level 3 Room 4");
-        level3Room4.setIsContainedIn(level2Room2);
-        level3Room4 = roomRepository.save(level3Room4);
+        // Room level3Room4 = new Room("Level 3 Room 4", root);
+        // level3Room4.setIsContainedIn(level2Room2);
+        // level3Room4 = roomRepository.save(level3Room4);
 
-        Room level3Room5 = new Room("Level 3 Room 5");
-        level3Room5.setIsContainedIn(level2Room3);
-        level3Room5 = roomRepository.save(level3Room5);
+        // Room level3Room5 = new Room("Level 3 Room 5", root);
+        // level3Room5.setIsContainedIn(level2Room3);
+        // level3Room5 = roomRepository.save(level3Room5);
 
-        Room level3Room6 = new Room("Level 3 Room 6");
-        level3Room6.setIsContainedIn(level2Room3);
-        level3Room6 = roomRepository.save(level3Room6);
+        // Room level3Room6 = new Room("Level 3 Room 6", root);
+        // level3Room6.setIsContainedIn(level2Room3);
+        // level3Room6 = roomRepository.save(level3Room6);
 
-        Room level3Room7 = new Room("Level 3 Room 7");
-        level3Room7.setIsContainedIn(level2Room4);
-        level3Room7 = roomRepository.save(level3Room7);
+        // Room level3Room7 = new Room("Level 3 Room 7", root);
+        // level3Room7.setIsContainedIn(level2Room4);
+        // level3Room7 = roomRepository.save(level3Room7);
 
-        Room level3Room8 = new Room("Level 3 Room 8");
-        level3Room8.setIsContainedIn(level2Room4);
-        level3Room8 = roomRepository.save(level3Room8);
+        // Room level3Room8 = new Room("Level 3 Room 8", root);
+        // level3Room8.setIsContainedIn(level2Room4);
+        // level3Room8 = roomRepository.save(level3Room8);
 
         // // Create level 4 rooms
-        // Room level4Room1 = new Room("Level 4 Room 1");
+        // Room level4Room1 = new Room("Level 4 Room 1",root);
         // level4Room1.setIsContainedIn(level3Room1);
         // level4Room1 = roomRepository.save(level4Room1);
 
-        // Room level4Room2 = new Room("Level 4 Room 2");
+        // Room level4Room2 = new Room("Level 4 Room 2",root);
         // level4Room2.setIsContainedIn(level3Room1);
         // level4Room2 = roomRepository.save(level4Room2);
 
-        // Room level4Room3 = new Room("Level 4 Room 3");
+        // Room level4Room3 = new Room("Level 4 Room 3",root);
         // level4Room3.setIsContainedIn(level3Room2);
         // level4Room3 = roomRepository.save(level4Room3);
 
-        // Room level4Room4 = new Room("Level 4 Room 4");
+        // Room level4Room4 = new Room("Level 4 Room 4",root);
         // level4Room4.setIsContainedIn(level3Room2);
         // level4Room4 = roomRepository.save(level4Room4);
 
-        // Room level4Room5 = new Room("Level 4 Room 5");
+        // Room level4Room5 = new Room("Level 4 Room 5",root);
         // level4Room5.setIsContainedIn(level3Room3);
         // level4Room5 = roomRepository.save(level4Room5);
 
-        // Room level4Room6 = new Room("Level 4 Room 6");
+        // Room level4Room6 = new Room("Level 4 Room 6",root);
         // level4Room6.setIsContainedIn(level3Room3);
         // level4Room6 = roomRepository.save(level4Room6);
 
-        // Room level4Room7 = new Room("Level 4 Room 7");
+        // Room level4Room7 = new Room("Level 4 Room 7",root);
         // level4Room7.setIsContainedIn(level3Room4);
         // level4Room7 = roomRepository.save(level4Room7);
 
-        // Room level4Room8 = new Room("Level 4 Room 8");
+        // Room level4Room8 = new Room("Level 4 Room 8",root);
         // level4Room8.setIsContainedIn(level3Room4);
         // level4Room8 = roomRepository.save(level4Room8);
 
-        // Room level4Room9 = new Room("Level 4 Room 9");
+        // Room level4Room9 = new Room("Level 4 Room 9",root);
         // level4Room9.setIsContainedIn(level3Room5);
         // level4Room9 = roomRepository.save(level4Room9);
 
-        // Room level4Room10 = new Room("Level 4 Room 10");
+        // Room level4Room10 = new Room("Level 4 Room 10",root);
         // level4Room10.setIsContainedIn(level3Room5);
         // level4Room10 = roomRepository.save(level4Room10);
 
-        // Room level4Room11 = new Room("Level 4 Room 11");
+        // Room level4Room11 = new Room("Level 4 Room 11",root);
         // level4Room11.setIsContainedIn(level3Room6);
         // level4Room11 = roomRepository.save(level4Room11);
 
-        // Room level4Room12 = new Room("Level 4 Room 12");
+        // Room level4Room12 = new Room("Level 4 Room 12",root);
         // level4Room12.setIsContainedIn(level3Room6);
         // level4Room12 = roomRepository.save(level4Room12);
 
-        // Room level4Room13 = new Room("Level 4 Room 13");
+        // Room level4Room13 = new Room("Level 4 Room 13",root);
         // level4Room13.setIsContainedIn(level3Room7);
         // level4Room13 = roomRepository.save(level4Room13);
 
-        // Room level4Room14 = new Room("Level 4 Room 14");
+        // Room level4Room14 = new Room("Level 4 Room 14",root);
         // level4Room14.setIsContainedIn(level3Room7);
         // level4Room14 = roomRepository.save(level4Room14);
 
-        // Room level4Room15 = new Room("Level 4 Room 15");
+        // Room level4Room15 = new Room("Level 4 Room 15",root);
         // level4Room15.setIsContainedIn(level3Room8);
         // level4Room15 = roomRepository.save(level4Room15);
 
-        // Room level4Room16 = new Room("Level 4 Room 16");
+        // Room level4Room16 = new Room("Level 4 Room 16",root);
         // level4Room16.setIsContainedIn(level3Room8);
         // level4Room16 = roomRepository.save(level4Room16);
+
+        Camera camera = new Camera(level1Room1);
+        cameraRepository.save(camera);
+        cameraRepository.flush();
+
+        Security security1 = new Security(root.getId());
+        securityRepository.save(security1);
+        securityRepository.flush();
+
+        Security security2 = new Security(root.getId());
+        securityRepository.save(security2);
+        securityRepository.flush();
+
+        ContinuousSensor sensorMotion = new ContinuousSensor("motion", level1Room1);
+        continuousSensorRepository.save(sensorMotion);
+        continuousSensorRepository.flush();
+
+        ContinuousSensor sensorSound = new ContinuousSensor("sound", level1Room1);
+        continuousSensorRepository.save(sensorSound);
+        continuousSensorRepository.flush();
+
+        ContinuousSensor sensorSmoke = new ContinuousSensor("smoke", level1Room1);
+        continuousSensorRepository.save(sensorSmoke);
+        continuousSensorRepository.flush();
 
     }
 
@@ -174,7 +213,8 @@ public class LoadTestDataService {
     public void createAggregationsForBottomLevelRooms() {
         List<Room> bottomLevelRooms = getBottomLevelRooms();
         Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_YEAR, -1);
+        // calendar.add(Calendar.DAY_OF_YEAR, -3);
+        calendar.add(Calendar.MONTH, -4);
         Date oneWeekAgo = calendar.getTime();
 
         List<AggregationToStore> aggregationToStoreList = new ArrayList<>();
@@ -194,11 +234,11 @@ public class LoadTestDataService {
 
             // aggregationToStoreList.addAll(convertToAggregationToStore(fiveMinuteDetections));
             // aggregationToStoreList.addAll(convertToAggregationToStore(fifteenMinuteAggregations));
-            aggregationToStoreList.addAll(convertToAggregationToStore(thirtyMinuteAggregations));
-            aggregationToStoreList.addAll(convertToAggregationToStore(sixtyMinuteAggregations));
-            aggregationToStoreList.addAll(convertToAggregationToStore(oneTwentyMinuteAggregations));
-            aggregationToStoreList.addAll(convertToAggregationToStore(twoFortyMinuteAggregations));
-            aggregationToStoreList.addAll(convertToAggregationToStore(fourEightyMinuteAggregations));
+            // aggregationToStoreList.addAll(convertToAggregationToStore(thirtyMinuteAggregations));
+            // aggregationToStoreList.addAll(convertToAggregationToStore(sixtyMinuteAggregations));
+            // aggregationToStoreList.addAll(convertToAggregationToStore(oneTwentyMinuteAggregations));
+            // aggregationToStoreList.addAll(convertToAggregationToStore(twoFortyMinuteAggregations));
+            // aggregationToStoreList.addAll(convertToAggregationToStore(fourEightyMinuteAggregations));
             aggregationToStoreList.addAll(convertToAggregationToStore(oneFourtyFourtyMinuteAggregations));
         }
 

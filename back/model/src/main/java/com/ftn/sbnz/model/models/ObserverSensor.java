@@ -14,8 +14,6 @@ public class ObserverSensor {
     @Id
     @GeneratedValue(strategy = GenerationType.TABLE)
     public Long id;
-    public int checkTime;
-    public boolean onOff;
     public Level level;
     @ManyToOne
     public Room room;
@@ -23,10 +21,8 @@ public class ObserverSensor {
     public ObserverSensor() {
     }
 
-    public ObserverSensor(int checkTime, Room room) {
+    public ObserverSensor(Room room) {
         this.room = room;
-        this.checkTime = checkTime;
-        this.onOff = false;
         this.level = Level.MEDIUM;
     }
 
@@ -35,36 +31,12 @@ public class ObserverSensor {
         this.level = level;
     }
 
-    public int getCheckTime() {
-        return checkTime;
-    }
-
-    public void setCheckTime(int checkTime) {
-        this.checkTime = checkTime;
-    }
-
-    public boolean isOn() {
-        return onOff;
-    }
-
-    public void setOn(boolean onOff) {
-        this.onOff = onOff;
-    }
-
     public Long getId() {
         return id;
     }
 
-    public boolean isOnOff() {
-        return onOff;
-    }
-
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public void setOnOff(boolean onOff) {
-        this.onOff = onOff;
     }
 
     public Level getLevel() {
@@ -74,4 +46,13 @@ public class ObserverSensor {
     public void setLevel(Level level) {
         this.level = level;
     }
+
+    public Room getRoom() {
+        return room;
+    }
+
+    public void setRoom(Room room) {
+        this.room = room;
+    }
+
 }

@@ -1,0 +1,175 @@
+package com.ftn.sbnz.rules.forward_security;
+
+import com.ftn.sbnz.model.models.Level;
+import com.ftn.sbnz.model.models.Camera;
+import com.ftn.sbnz.model.models.Security;
+import com.ftn.sbnz.model.models.Alarm;
+import com.ftn.sbnz.model.models.Room;
+import com.ftn.sbnz.model.events.ContinuousSensorEvent;
+import com.ftn.sbnz.model.events.DiscretSensorEvent;
+
+
+rule "Activate camera if motion is detected and camera is present"
+agenda-group "security_forward"
+when
+    $event: DiscretSensorEvent(type == "motion")
+    $camera: Camera(room.id == $event.roomId, $camera.isOn == false)
+then
+    modify($camera){setOn(true)};
+    delete($event);
+    System.out.println("Motion detected, camera turned on: " + $camera.isOn);
+end;
+
+rule "Activate camera if sound or smoke is detected and camera is present"
+agenda-group "security_forward"
+when
+    $event: ContinuousSensorEvent(type in ("sound", "smoke"), level in (Level.MEDIUM,Level.HIGH))
+    $camera: Camera(room.id == $event.roomId, $camera.isOn == false)
+then      
+    modify($camera){setOn(true)};
+    delete($event);
+    System.out.println($event.type + " detected, camera turned on: " + $camera.isOn); 
+end;
+
+rule "Always notify security if camera is not present"
+agenda-group "security_forward"
+salience -10
+when
+    $room:Room(building != null)
+    not(Camera(room.id == $room.id))
+    $security: Security(currentRoomId == null)
+    not(Security(currentRoomId == $room.id))
+then
+    modify($security){notifyOnCaution($room.id)};
+    System.out.println("Security " + $security.id + " moved to: " + $security.currentRoomId);
+end;
+
+rule "Notify security if motion is detected and camera is not present"
+agenda-group "security_forward"
+when
+    $event: DiscretSensorEvent(type == "motion")
+    not(Camera(room.getId() == $event.roomId))
+    not(Security(currentRoomId == $event.roomId))
+    $security: Security(currentRoomId != $event.roomId)
+then
+    modify($security){notifyOnCaution($event.roomId)};
+    delete($event);
+    System.out.println("motion is detected, Security moved to: " + $security.currentRoomId);
+end;
+
+rule "Notify security if sound or smoke is detected and camera is not present"
+agenda-group "security_forward"
+when
+    $event: ContinuousSensorEvent(type in ("sound", "smoke"), level in (Level.MEDIUM,Level.HIGH))
+    not(Camera(room.getId() == $event.roomId))
+    not(Security(currentRoomId == $event.roomId))
+    $security: Security(currentRoomId != $event.roomId)
+then
+    modify($security){notifyOnCaution($event.roomId)};
+    delete($event);
+    System.out.println("sound or smoke is detected" + "Security " +$security.id +" moved to: " + $security.currentRoomId);
+end;
+
+rule "Check temperature if presence detected by camera"
+agenda-group "security_forward"
+when
+    $event: DiscretSensorEvent(type == "cameraDetect")
+    $camera: Camera(id == $event.deviceId)
+then
+    insert(new DiscretSensorEvent($camera.room.getId(),"detectTemp"));
+    delete($event);
+end;
+
+rule "presence detected by camera"
+agenda-group "security_forward"
+when
+    $event1: DiscretSensorEvent(type == "detectTemp")
+    $event2: DiscretSensorEvent(type == "detectTempWarm", roomId == $event1.getRoomId())
+then
+    insert(new DiscretSensorEvent($event1.getRoomId(),"faceRecognition"));
+    delete($event1);
+    delete($event2);
+end;
+
+rule "presence detected by security"
+agenda-group "security_forward"
+when
+    $event: DiscretSensorEvent(type == "securityDetect")
+    $security: Security(currentRoomId == $event.roomId)
+then
+    insert(new DiscretSensorEvent($event.roomId,"securityFaceRecognition"));
+    delete($event);
+end;
+
+rule "Signal unknown person if face detection fails"
+agenda-group "security_forward"
+when
+    $event1: DiscretSensorEvent(type == "faceRecognition")
+    $event2: DiscretSensorEvent(type == "faceRecognitionFalse", roomId == $event1.getRoomId())
+    $room: Room(id == $event1.getRoomId())
+then
+    modify($room){setAlarm(Alarm.YELLOW)};
+    delete($event1);
+end;
+
+rule "Set red alarm and lock doors if loud sound in room with unknown person and yellow alarm"
+agenda-group "security_forward"
+when
+    $event1: ContinuousSensorEvent(type == "sound", level == Level.HIGH)
+    $room: Room(id == $event1.getRoomId(), alarm == Alarm.YELLOW)
+    $event2: DiscretSensorEvent(type == "faceRecognitionFalse", roomId == $room.id)
+then
+    modify($room){setAlarm(Alarm.RED)};
+    modify($room){setLocked(true)};
+    delete($event1);
+end;
+
+rule "Call police if alarm is red"
+agenda-group "security_forward"
+when
+    $room: Room(alarm == Alarm.RED)
+    $security: Security(buildingId == $room.building.getId())
+    not(DiscretSensorEvent(roomId == $room.id,type == "calledPolice"))
+then
+    modify($security){callPolice($room.id)};
+    insert(new DiscretSensorEvent($room.id,"calledPolice"));
+end;
+
+rule "Set yellow alarm if security finds unknown person"
+agenda-group "security_forward"
+when
+    $security: Security(currentRoomId != null )
+    $event1: DiscretSensorEvent(type == "securityFaceRecognition")
+    $event2: DiscretSensorEvent(type == "securityFaceRecognitionFalse", roomId == $event1.roomId)
+    $room: Room(id == $event1.roomId)
+then
+    insert(new DiscretSensorEvent($event1.roomId,"notifyTeam"));
+    modify($room){setAlarm(Alarm.YELLOW)};
+    delete($event1);
+    delete($event2);
+end;
+
+rule "Notify security team"
+agenda-group "security_forward"
+when
+    $event1: DiscretSensorEvent(type == "notifyTeam")
+    $room: Room(id == $event1.roomId)
+    $security: Security(currentRoomId != $event1.roomId, buildingId == $room.building.getId())
+then
+    modify($security){notifyOnCaution($room.id)};
+    delete($event1);
+    System.out.println("Security " +$security.id + " moved to: " + $security.currentRoomId);
+end;
+
+rule "Set red alarm and lock doors if loud sound in room with security and yellow alarm"
+agenda-group "security_forward"
+when
+    $event: ContinuousSensorEvent(type == "sound", level == Level.HIGH)
+    $room: Room(id == $event.roomId, alarm == Alarm.YELLOW)
+    $security: Security(currentRoomId == $room.id)
+then
+    modify($room){setAlarm(Alarm.RED)};
+    modify($room){setLocked(true)};
+    delete($event);
+    delete($event);
+end;

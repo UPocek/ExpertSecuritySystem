@@ -13,8 +13,8 @@ public class ContinuousSensor extends ObserverSensor {
         super();
     }
 
-    public ContinuousSensor(String type, int checkTime, Room room) {
-        super(checkTime, room);
+    public ContinuousSensor(String type, Room room) {
+        super(room);
         this.type = type;
         this.config = new Configuration();
     }

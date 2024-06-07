@@ -51,8 +51,8 @@ public class SensorController {
 	}
 
 	@PostMapping("/security")
-	public Security addSecurity() {
-		Security security = sensorService.addSecurity();
+	public Security addSecurity(@RequestParam Long buildingId) {
+		Security security = sensorService.addSecurity(buildingId);
 
 		log.debug("Added new sensor: " + security);
 
@@ -70,20 +70,27 @@ public class SensorController {
 	}
 
 	@PutMapping("/continuous_reading")
-	public void reading(@RequestParam Long roomId, @RequestParam Long sensorId, @RequestParam String sensorType,
+	public void reading(@RequestParam Long sensorId,
 			@RequestParam double value) {
-		sensorService.continuousSensorReading(sensorType, roomId, sensorId, value);
+		sensorService.continuousSensorReading(sensorId, value);
 
 		log.debug("Added new sensor reading for sensor with id: " + sensorId);
 
 	}
 
 	@PutMapping("/discret_reading")
-	public void reading(@RequestParam Long roomId, @RequestParam Long sensorId, @RequestParam String sensorType) {
-		sensorService.discretSensorReading(sensorType, roomId, sensorId);
+	public void reading(@RequestParam Long sensorId) {
+		sensorService.discretSensorReading(sensorId);
 
 		log.debug("Added new sensor reading for sensor with id: " + sensorId);
 
 	}
 
+	@PutMapping("/camera_reading")
+	public void cameraReading(@RequestParam String type, @RequestParam Long sensorId) {
+		sensorService.cameraSensorReading(type, sensorId);
+
+		log.debug("Added new camera reading for sensor with id: " + sensorId);
+
+	}
 }

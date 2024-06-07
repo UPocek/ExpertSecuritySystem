@@ -6,6 +6,7 @@ public class ReportFilter {
     public Date startDate;
     public Date endDate;
     public String location;
+    public String productGroup;
     public int interval;
     public String type;
 
@@ -16,17 +17,19 @@ public class ReportFilter {
         this.type = type;
     }
 
-    public ReportFilter(Date startDate, Date endDate, String location, String type) {
+    public ReportFilter(Date startDate, Date endDate, String location, String productGroup, String type) {
         this.startDate = startDate;
         this.endDate = endDate;
         this.location = location;
+        this.productGroup = productGroup;
         this.type = type;
     }
 
-    public ReportFilter(Date startDate, Date endDate, String location, int interval, String type) {
+    public ReportFilter(Date startDate, Date endDate, String location, String productGroup, int interval, String type) {
         this.startDate = startDate;
         this.endDate = endDate;
         this.location = location;
+        this.productGroup = productGroup;
         this.interval = interval;
         this.type = type;
     }
@@ -69,6 +72,14 @@ public class ReportFilter {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getProductGroup() {
+        return productGroup;
+    }
+
+    public void setProductGroup(String productGroup) {
+        this.productGroup = productGroup;
     }
 
 }

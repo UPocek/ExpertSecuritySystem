@@ -11,20 +11,24 @@ public class Security {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
 
-    public Long currentRoom;
+    public Long currentRoomId;
+    public Long buildingId;
 
     public Security() {
-        this.currentRoom = null;
     }
 
-    public void notifyOnCaution(Room room) {
-    };
-
-    public void callPolice(Room room) {
-    };
-
-    public void notifyTeam(Room room) {
+    public Security(Long buildingId) {
+        this.buildingId = buildingId;
+        this.currentRoomId = null;
     }
+
+    public void notifyOnCaution(Long roomId) {
+        this.currentRoomId = roomId;
+    };
+
+    public void callPolice(Long roomId) {
+        System.out.println("Security called police");
+    };
 
     public Long getId() {
         return id;
