@@ -126,7 +126,7 @@ export default function RecommendationPage() {
                     })
                     .catch(err => console.log(err))
             }
-            if (conf['extraGearRequest'] != '') {
+            else if (conf['extraGearRequest'] != '') {
                 axios.post(`${baseUrl}/api/room/config/gear?roomId=${conf['roomId']}&type=${conf['extraGearRequest']}&response=${conf['extraGearValue']}`)
                     .then(response => {
                         if (response.data.workRequest == null && response.data.extraGearRequest == null) {
@@ -146,6 +146,8 @@ export default function RecommendationPage() {
                         }
                     })
                     .catch(err => console.log(err))
+            } else {
+                countFinished++;
             }
             newConf.push(conf)
         }
