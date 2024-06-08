@@ -27,7 +27,7 @@ export default function RecommendationPage() {
                 setRooms(res.data);
                 const tempList = []
                 for (let room of getLeafRooms(res.data)) {
-                    tempList.push({ 'roomId': room.name, 'size': 0, 'securityLevel': 'LOW', 'type': '' })
+                    tempList.push({ 'roomId': room.id, 'size': 0, 'securityLevel': 'LOW', 'type': '' })
                 }
                 setRoomsConfigurations(tempList)
                 const building = (res.data).find(r => r.isContainedIn == null)
@@ -52,6 +52,12 @@ export default function RecommendationPage() {
     }
 
     function stepOne() {
+
+        if (buildingPurpose == '') {
+            toast.error("Please select building purpose")
+            return
+        }
+
         const tempConf = [...roomsConfigurations];
         for (let conf of tempConf) {
             if (conf['size'] == 0) {
@@ -70,7 +76,7 @@ export default function RecommendationPage() {
             <div className="p-6 bg-slate-100 rounded-xl">
                 <Select value={buildingPurpose} onValueChange={(newValue) => setBuildingPurpose(newValue)}>
                     <SelectTrigger className="w-[250px]">
-                        <SelectValue placeholder="Builing purpose" />
+                        <SelectValue placeholder="Building purpose" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value={'work'}>Work building</SelectItem>

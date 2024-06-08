@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ftn.sbnz.dtos.RoomConfigResponseDTO;
 import com.ftn.sbnz.dtos.RoomDTO;
 import com.ftn.sbnz.model.models.Level;
 import com.ftn.sbnz.model.models.Room;
+import com.ftn.sbnz.model.models.WorkRequest;
 import com.ftn.sbnz.service.RoomService;
 
 @RestController
@@ -71,19 +73,20 @@ public class RoomController {
     }
 
     @GetMapping("/config")
-    public void getRoomConfig(@RequestParam Long roomId, @RequestParam String type, @RequestParam double size,
+    public RoomConfigResponseDTO getRoomConfig(@RequestParam Long roomId, @RequestParam String type,
+            @RequestParam double size,
             @RequestParam String level) {
-        roomService.getRoomConfig(type, size, Level.valueOf(level), roomId);
+        return roomService.getRoomConfig(type, size, Level.valueOf(level), roomId);
 
     }
 
     @PostMapping("/config/work")
-    public void addWorkResponse(Long roomId, String type, boolean response) {
-        roomService.addWorkResponse(roomId, type, response);
+    public RoomConfigResponseDTO addWorkResponse(Long roomId, String type, boolean response) {
+        return roomService.addWorkResponse(roomId, type, response);
     }
 
     @PostMapping("/config/gear")
-    public void addGearResponse(Long roomId, String type, boolean response) {
-        roomService.addExtraGearResponse(roomId, type, response);
+    public RoomConfigResponseDTO addGearResponse(Long roomId, String type, boolean response) {
+        return roomService.addExtraGearResponse(roomId, type, response);
     }
 }

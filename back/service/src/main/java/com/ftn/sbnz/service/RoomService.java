@@ -1,11 +1,10 @@
 package com.ftn.sbnz.service;
 
-import java.util.Optional;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import org.drools.core.ClassObjectFilter;
 import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,12 +12,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.ftn.sbnz.repository.IRoomRepository;
+import com.ftn.sbnz.dtos.RoomConfigResponseDTO;
 import com.ftn.sbnz.dtos.RoomDTO;
 import com.ftn.sbnz.managers.SessionManager;
+import com.ftn.sbnz.model.models.ExtraGearRequest;
 import com.ftn.sbnz.model.models.ExtraGearResponse;
 import com.ftn.sbnz.model.models.Level;
 import com.ftn.sbnz.model.models.Room;
 import com.ftn.sbnz.model.models.RoomRequest;
+import com.ftn.sbnz.model.models.WorkRequest;
 import com.ftn.sbnz.model.models.WorkResponse;
 
 import java.util.ArrayList;
@@ -45,7 +47,7 @@ public class RoomService {
         return room;
     }
 
-    public void getRoomConfig(String type, double size, Level level, Long roomId) {
+    public RoomConfigResponseDTO getRoomConfig(String type, double size, Level level, Long roomId) {
         KieSession kieSession = sessionManager.getConfigSession();
         roomRepository.findById(roomId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Room with that id not found"));
@@ -53,12 +55,36 @@ public class RoomService {
         RoomRequest rr = new RoomRequest(type, size, level, roomId);
         kieSession.insert(rr);
         kieSession.fireAllRules();
+
         for (Object item : kieSession.getObjects()) {
             System.out.println(item);
         }
+
+        List<WorkRequest> result1 = kieSession
+                .getObjects(new ClassObjectFilter(WorkRequest.class)).stream()
+                .map(o -> (WorkRequest) o).collect(Collectors.toList());
+
+        RoomConfigResponseDTO dto = new RoomConfigResponseDTO();
+        if (result1.isEmpty()) {
+            dto.setWorkRequest(null);
+        } else {
+            dto.setWorkRequest(result1.get(0));
+        }
+
+        List<ExtraGearRequest> result2 = kieSession
+                .getObjects(new ClassObjectFilter(ExtraGearRequest.class)).stream()
+                .map(o -> (ExtraGearRequest) o).collect(Collectors.toList());
+
+        if (result2.isEmpty()) {
+            dto.setExtraGearRequest(null);
+        } else {
+            dto.setExtraGearRequest(result2.get(0));
+        }
+
+        return dto;
     }
 
-    public void addWorkResponse(Long roomId, String type, boolean success) {
+    public RoomConfigResponseDTO addWorkResponse(Long roomId, String type, boolean success) {
         KieSession kieSession = sessionManager.getConfigSession();
         roomRepository.findById(roomId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Room with that id not found"));
@@ -69,9 +95,32 @@ public class RoomService {
         for (Object item : kieSession.getObjects()) {
             System.out.println(item);
         }
+
+        List<WorkRequest> result1 = kieSession
+                .getObjects(new ClassObjectFilter(WorkRequest.class)).stream()
+                .map(o -> (WorkRequest) o).collect(Collectors.toList());
+
+        RoomConfigResponseDTO dto = new RoomConfigResponseDTO();
+        if (result1.isEmpty()) {
+            dto.setWorkRequest(null);
+        } else {
+            dto.setWorkRequest(result1.get(0));
+        }
+
+        List<ExtraGearRequest> result2 = kieSession
+                .getObjects(new ClassObjectFilter(ExtraGearRequest.class)).stream()
+                .map(o -> (ExtraGearRequest) o).collect(Collectors.toList());
+
+        if (result2.isEmpty()) {
+            dto.setExtraGearRequest(null);
+        } else {
+            dto.setExtraGearRequest(result2.get(0));
+        }
+
+        return dto;
     }
 
-    public void addExtraGearResponse(Long roomId, String type, boolean response) {
+    public RoomConfigResponseDTO addExtraGearResponse(Long roomId, String type, boolean response) {
         KieSession kieSession = sessionManager.getConfigSession();
         roomRepository.findById(roomId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Room with that id not found"));
@@ -82,6 +131,29 @@ public class RoomService {
         for (Object item : kieSession.getObjects()) {
             System.out.println(item);
         }
+
+        List<WorkRequest> result1 = kieSession
+                .getObjects(new ClassObjectFilter(WorkRequest.class)).stream()
+                .map(o -> (WorkRequest) o).collect(Collectors.toList());
+
+        RoomConfigResponseDTO dto = new RoomConfigResponseDTO();
+        if (result1.isEmpty()) {
+            dto.setWorkRequest(null);
+        } else {
+            dto.setWorkRequest(result1.get(0));
+        }
+
+        List<ExtraGearRequest> result2 = kieSession
+                .getObjects(new ClassObjectFilter(ExtraGearRequest.class)).stream()
+                .map(o -> (ExtraGearRequest) o).collect(Collectors.toList());
+
+        if (result2.isEmpty()) {
+            dto.setExtraGearRequest(null);
+        } else {
+            dto.setExtraGearRequest(result2.get(0));
+        }
+
+        return dto;
     }
 
     public Room getRoom(Long id) {
