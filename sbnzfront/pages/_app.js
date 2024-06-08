@@ -60,7 +60,7 @@ export default function App({ Component, pageProps }) {
   return (
     <>
       <Toaster richColors />
-      < Component {...pageProps} />;
+      < Component {...pageProps} />
     </>
   )
 

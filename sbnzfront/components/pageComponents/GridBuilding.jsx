@@ -1,8 +1,13 @@
 import { baseUrl } from "@/pages/_app";
 import axios from "axios";
 import { toast } from "sonner";
+import { Button } from "../ui/button";
+import { useRouter } from "next/router";
 
 const GridBuilding = ({ leafList }) => {
+
+    const router = useRouter();
+
     const handleCellClick = (roomName) => {
         const numberOfPeople = Math.floor(Math.random() * 5) + 1;
 
@@ -30,7 +35,7 @@ const GridBuilding = ({ leafList }) => {
             colSpan = 2;
         }
 
-        return { rowSpan, colSpan };
+        return { rowSpan, colSpan }
     };
 
     return (
@@ -52,6 +57,9 @@ const GridBuilding = ({ leafList }) => {
                         </button>
                     );
                 })}
+            </div>
+            <div className="mt-auto flex justify-end items-end w-full">
+                <Button onClick={() => router.push('/recommendation')}>Request recommendation</Button>
             </div>
         </div>
     );
