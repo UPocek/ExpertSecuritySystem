@@ -67,7 +67,7 @@ export default function RecommendationPage() {
             conf['type'] = buildingPurpose
         }
         console.log(tempConf);
-        // Axios
+        axios.get(`${baseUrl}/api/room/config?roomId=${roomId}&type=${type}&size=${size}&level=${level}`)
     }
 
     return (
