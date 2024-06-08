@@ -172,7 +172,7 @@ export default function RecommendationPage() {
                 <hr className="my-6" />
 
                 {leafRooms.length > 0 &&
-                    <div className="grid grid-cols-2">
+                    <div className="grid grid-cols-2 gap-4">
                         {leafRooms.map((room, index) => <RoomConfig key={room.name} index={index} room={room} roomsConfigurations={roomsConfigurations} setRoomsConfigurations={setRoomsConfigurations} />)}
                     </div>
                 }
