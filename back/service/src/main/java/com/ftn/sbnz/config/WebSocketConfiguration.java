@@ -1,29 +1,17 @@
 package com.ftn.sbnz.config;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
-import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
-import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+
+import com.ftn.sbnz.ws.SocketHandler;
 
 @Configuration
-@EnableWebSocketMessageBroker
-public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
+@EnableWebSocket
+public class WebSocketConfiguration implements WebSocketConfigurer {
 
-    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/socket")
-                .setAllowedOriginPatterns("*")
-                .withSockJS();
-        registry.addEndpoint("/socket")
-                .setAllowedOriginPatterns("*");
-    }
-
-    // SpringBoot listens on /socket-subscriber
-    // Front end listens on /new-device
-    @Override
-    public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.setApplicationDestinationPrefixes("/socket-subscriber")
-                .enableSimpleBroker("/new-device");
+    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+        registry.addHandler(new SocketHandler(), "/alarm").setAllowedOrigins("*");
     }
 }

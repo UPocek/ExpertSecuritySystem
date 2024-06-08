@@ -6,9 +6,9 @@ import {
     AlertTitle,
 } from "@/components/ui/alert"
 
-export function AlertItem({ title, description }) {
+export function AlertItem({ variant, title, description }) {
     return (
-        <Alert className='shadow-md'>
+        <Alert variant={variant} className='shadow-md'>
             <Terminal className="h-4 w-4" />
             <AlertTitle>{title}</AlertTitle>
             <AlertDescription>
