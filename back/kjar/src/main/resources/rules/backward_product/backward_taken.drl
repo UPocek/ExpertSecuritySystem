@@ -11,76 +11,76 @@ query isContainedIn( String x, String y )
   ( Location( z, y; ) and isContainedIn( x, z; ) )
 end
 
-// rule "product report 1"
-// agenda-group "productReportTake"
-// no-loop
-//   when
-//     $filter: ReportFilter($productGroup:productGroup,$startDate:startDate,$endDate:endDate, $interval:interval)
-//     not(ProductReportResult(productGroup == $productGroup, startDate == $startDate, interval == $interval))
-//     $ad: AggregateProduct(act == "take",timeStamp after $startDate, timeStamp before $endDate, interval == $interval, isProcessed == false, $productGroup1: productGroup) 
-//     isContainedIn($productGroup1, $productGroup;)
-//   then
-//     if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
-//       insert(new ProductReportResult($ad.getQuantity(),$startDate, $productGroup, $interval));
-//     } else {
-//       insert(new ProductReportResult($ad.getPrice(),$startDate, $productGroup, $interval));
-//     }
-// end
+rule "product report 1"
+agenda-group "productReportTake"
+no-loop
+  when
+    $filter: ReportFilter($productGroup:productGroup,$startDate:startDate,$endDate:endDate, $interval:interval)
+    not(ProductReportResult(productGroup == $productGroup, startDate == $startDate, interval == $interval))
+    $ad: AggregateProduct(act == "take",timeStamp after $startDate, timeStamp before $endDate, interval == $interval, isProcessed == false, $productGroup1: productGroup) 
+    isContainedIn($productGroup1, $productGroup;)
+  then
+    if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
+      insert(new ProductReportResult($ad.getQuantity(),$startDate, $productGroup, $interval));
+    } else {
+      insert(new ProductReportResult($ad.getPrice(),$startDate, $productGroup, $interval));
+    }
+end
 
-// rule "product report 2"
-// agenda-group "productReportTake"
-// no-loop
-//   when
-//     $filter: ReportFilter( $product:product,$startDate:startDate,$endDate:endDate, $interval:interval)
-//     $dpcrr: ProductReportResult(product == $product, startDate == $startDate, interval == $interval, $value:value)
-//     $ad : AggregateProduct(act == "take",interval == $interval, timeStamp after $startDate , timeStamp before $endDate, isProcessed == false,$product1:product)
-//     isContainedIn($product1, $product;)
-//   then
-//     if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
-//       modify($dpcrr){ setValue($value + $ad.getQuantity()); }
-//     } else {
-//       modify($dpcrr){ setValue($value + $ad.getPrice()); }
-//     }
-// end
+rule "product report 2"
+agenda-group "productReportTake"
+no-loop
+  when
+    $filter: ReportFilter( $productGroup:productGroup,$startDate:startDate,$endDate:endDate, $interval:interval)
+    $dpcrr: ProductReportResult(productGroup == $productGroup, startDate == $startDate, interval == $interval, $value:value)
+    $ad : AggregateProduct(act == "take",interval == $interval, timeStamp after $startDate , timeStamp before $endDate, isProcessed == false,$productGroup1:productGroup)
+    isContainedIn($productGroup1, $productGroup;)
+  then
+    if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
+      modify($dpcrr){ setValue($value + $ad.getQuantity()) };
+    } else {
+      modify($dpcrr){ setValue($value + $ad.getPrice()) };
+    }
+end
 
-// rule "product report 3"
-// agenda-group "productReportTake"
-// no-loop
-//   when
-//     $filter: ReportFilter($product:product,$startDate:startDate,$endDate:endDate, $interval:interval)
-//     not(ProductReportResult(product == $product, startDate == $startDate, interval == $interval))
-//     $ad: AggregateProduct(act == "take",timeStamp after $startDate, timeStamp before $endDate, interval == $interval, isProcessed == false, product == $product) 
-//   then
-//     if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
-//       insert(new ProductReportResult($ad.getQuantity(),$startDate, $product, $interval));
-//     } else {
-//       insert(new ProductReportResult($ad.getPrice(),$startDate, $product, $interval));
-//     }
-// end
+rule "product report 3"
+agenda-group "productReportTake"
+no-loop
+  when
+    $filter: ReportFilter($productGroup:productGroup,$startDate:startDate,$endDate:endDate, $interval:interval)
+    not(ProductReportResult(productGroup == $productGroup, startDate == $startDate, interval == $interval))
+    $ad: AggregateProduct(act == "take",timeStamp after $startDate, timeStamp before $endDate, interval == $interval, isProcessed == false, productGroup == $productGroup) 
+  then
+    if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
+      insert(new ProductReportResult($ad.getQuantity(),$startDate, $productGroup, $interval));
+    } else {
+      insert(new ProductReportResult($ad.getPrice(),$startDate, $productGroup, $interval));
+    }
+end
 
-// rule "product report 4"
-// agenda-group "productReportTake"
-// no-loop
-//   when
-//     $filter: ReportFilter($product:product,$startDate:startDate,$endDate:endDate, $interval:interval)
-//     $dpcrr: ProductReportResult(product == $product, startDate == $startDate, interval == $interval, $value:value)
-//     $ad : AggregateProduct(act == "take",interval == $interval, timeStamp after $startDate , timeStamp before $endDate, product == $product,isProcessed == false)
-//   then
-//     modify($ad){ setProcessed(true); }
-//     if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
-//       modify($dpcrr){ setValue($value + $ad.getQuantity()); }
-//     } else {
-//       modify($dpcrr){ setValue($value + $ad.getPrice()); }
-//     }
-// end
+rule "product report 4"
+agenda-group "productReportTake"
+no-loop
+  when
+    $filter: ReportFilter($productGroup:productGroup,$startDate:startDate,$endDate:endDate, $interval:interval)
+    $dpcrr: ProductReportResult(productGroup == $productGroup, startDate == $startDate, interval == $interval, $value:value)
+    $ad : AggregateProduct(act == "take",interval == $interval, timeStamp after $startDate , timeStamp before $endDate, productGroup == $productGroup,isProcessed == false)
+  then
+    modify($ad){ setProcessed(true); }
+    if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
+      modify($dpcrr){ setValue($value + $ad.getQuantity()) };
+    } else {
+      modify($dpcrr){ setValue($value + $ad.getPrice())};
+    }
+end
 
-// rule "most sell report 1"
-// agenda-group "productReportReturn"
-// no-loop
-//   when
-//     $filter: ReportFilter(type == "most_sell",product == null, $startDate:startDate,$endDate:endDate, $interval:interval)
-//     $l: Location($product:item)
-//     not(ReportFilter(product == $product))
-//   then
-//     insert(new ReportFilter($startDate, $endDate, null, $product, $interval, "most_sell"));
-// end
+rule "most sell report 1"
+agenda-group "productReportReturn"
+no-loop
+  when
+    $filter: ReportFilter(type == "most_sell",productGroup == null, $startDate:startDate,$endDate:endDate, $interval:interval)
+    $l: Location($productGroup:item)
+    not(ReportFilter(productGroup == $productGroup))
+  then
+    insert(new ReportFilter($startDate, $endDate, null, $productGroup, $interval, "most_sell"));
+end

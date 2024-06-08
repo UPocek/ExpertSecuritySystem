@@ -1,4 +1,3 @@
-import { axios } from 'axios';
 import { useMemo, useState } from "react";
 import { Button } from "../ui/button";
 import PopUp from "../universal/PopUp";
@@ -6,6 +5,7 @@ import SensorCard from "../universal/SensorCard";
 import PopUpEdit from "../universal/PopUpEdit";
 import { baseUrl } from '@/pages/_app';
 import { toast } from 'sonner';
+import axios from "axios";
 
 export default function ManageSensors({ rooms, sensors, setSensors }) {
 
@@ -34,7 +34,7 @@ export default function ManageSensors({ rooms, sensors, setSensors }) {
 
     function fireSensor(sensor, value) {
         if (sensor['type'] == 'sound' || sensor['type'] == 'smoke' || sensor['type'] == 'temperature' || sensor['type'] == 'humidity') {
-            axios.put(`${baseUrl}/api/sensor/continuous_reading?sensorId=${sensor['id']}value=${value}`)
+            axios.put(`${baseUrl}/api/sensor/continuous_reading?sensorId=${sensor['id']}&value=${value}`)
                 .then(response => {
                     console.log(response.data)
                     toast.info(`Sensor ${sensor['type']} with id ${sensor['id']} fired successfully`);
@@ -72,7 +72,7 @@ export default function ManageSensors({ rooms, sensors, setSensors }) {
                     <div className="text-left w-full flex flex-col gap-4">
                         {sensorsByRoom.map((room) => (
                             <div className="w-full" key={room.roomId}>
-                                <h2 className="mb-4 text-2xl font-bold">{`Room ${room.roomId} sensors:`}</h2>
+                                <h2 className="mb-4 text-2xl font-bold">{`Room ${room.name} sensors:`}</h2>
                                 <div className="flex items-center gap-2 flex-wrap">
                                     {room.sensors.map((sensor, index) => (
                                         <SensorCard key={sensor.id} sensor={sensor} name={`Sensor${index + 1}`} action={fireSensor} editAction={setEditSensor} />

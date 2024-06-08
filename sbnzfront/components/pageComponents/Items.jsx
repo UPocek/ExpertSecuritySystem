@@ -20,7 +20,7 @@ export default function Items({ roomId }) {
     function addItemToCart(item) {
         const customerId = 1;
         const price = Math.floor(Math.random() * 42);
-        axios.post(`${baseUrl}/api/product_detection?productId=${item.productId}&act=take&customerId=${customerId}&price=${price}`)
+        axios.post(`${baseUrl}/api/product_detection?productGroup=${item.name}&act=take&customerId=${customerId}&price=${price}`)
             .then((res) => {
                 console.log(res.data);
             }).catch(err => console.log(err))
@@ -29,7 +29,7 @@ export default function Items({ roomId }) {
     function removeItemFromCart(item) {
         const customerId = 1;
         const price = Math.floor(Math.random() * 42);
-        axios.post(`${baseUrl}/api/product_detection?productId=${item.productId}&act=return&customerId=${customerId}&price=${price}`)
+        axios.post(`${baseUrl}/api/product_detection?productGroup=${item.name}&act=return&customerId=${customerId}&price=${price}`)
             .then((res) => {
                 console.log(res.data);
             }).catch(err => console.log(err))

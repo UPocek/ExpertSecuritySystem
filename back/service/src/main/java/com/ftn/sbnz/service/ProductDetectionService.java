@@ -455,13 +455,13 @@ public class ProductDetectionService {
         return dailyTimeRanges;
     }
 
-    public void insertDetection(Long productId, String act, String customerId, double price) {
+    public void insertDetection(String productGroup, String act, String customerId, double price) {
         KieSession kieSession = sessionManager.getAggregateProducteSession();
 
-        productRepository.findById(productId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No room with that location name"));
+        productRepository.findByName(productGroup).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No product with that group name"));
 
-        ProductEvent pe = new ProductEvent(productId, act, customerId, price);
+        ProductEvent pe = new ProductEvent(productGroup, act, customerId, price);
         kieSession.insert(pe);
         kieSession.fireAllRules();
 

@@ -2,15 +2,15 @@ package com.ftn.sbnz.model.models;
 
 public class RequestProductAggregate {
     public int interval;
-    public Long productId;
+    public String productGroup;
     public String act;
 
     public RequestProductAggregate() {
     }
 
-    public RequestProductAggregate(int interval, Long productId, String act) {
+    public RequestProductAggregate(int interval, String productGroup, String act) {
         this.interval = interval;
-        this.productId = productId;
+        this.productGroup = productGroup;
         this.act = act;
     }
 
@@ -22,20 +22,20 @@ public class RequestProductAggregate {
         this.interval = interval;
     }
 
-    public Long getProductId() {
-        return productId;
-    }
-
-    public void setProductId(Long productId) {
-        this.productId = productId;
-    }
-
     public String getAct() {
         return act;
     }
 
     public void setAct(String act) {
         this.act = act;
+    }
+
+    public String getProductGroup() {
+        return productGroup;
+    }
+
+    public void setProductGroup(String productGroup) {
+        this.productGroup = productGroup;
     }
 
 }

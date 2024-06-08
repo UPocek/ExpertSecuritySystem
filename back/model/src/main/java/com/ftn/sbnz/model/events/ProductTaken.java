@@ -6,7 +6,7 @@ import org.kie.api.definition.type.Role;
 
 @Role(Role.Type.EVENT)
 public class ProductTaken {
-    public Long productId;
+    public String productGroup;
     public String customerId;
     public Date timeStamp;
     public double price;
@@ -14,19 +14,11 @@ public class ProductTaken {
     public ProductTaken() {
     }
 
-    public ProductTaken(String customerId, Long productId, Date timeStamp, double price) {
-        this.productId = productId;
+    public ProductTaken(String customerId, String productGroup, Date timeStamp, double price) {
+        this.productGroup = productGroup;
         this.customerId = customerId;
         this.timeStamp = timeStamp;
         this.price = price;
-    }
-
-    public Long getProductId() {
-        return productId;
-    }
-
-    public void setProductId(Long productId) {
-        this.productId = productId;
     }
 
     public String getCustomerId() {
@@ -51,6 +43,14 @@ public class ProductTaken {
 
     public void setPrice(double price) {
         this.price = price;
+    }
+
+    public String getProductGroup() {
+        return productGroup;
+    }
+
+    public void setProductGroup(String productGroup) {
+        this.productGroup = productGroup;
     }
 
 }

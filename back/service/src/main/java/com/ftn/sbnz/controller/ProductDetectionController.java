@@ -22,9 +22,9 @@ public class ProductDetectionController {
     private ProductDetectionService productDetectionService;
 
     @PostMapping()
-    public void addProductDetection(@RequestParam Long productId, @RequestParam String act,
+    public void addProductDetection(@RequestParam String productGroup, @RequestParam String act,
             @RequestParam String customerId, @RequestParam double price) {
-        productDetectionService.insertDetection(productId, act, customerId, price);
+        productDetectionService.insertDetection(productGroup, act, customerId, price);
 
     }
     // @GetMapping("/most_bought")

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { Input } from "../ui/input";
+import axios from "axios";
 
 export default function SensorCard({ sensor, name, action, editAction }) {
     const [value, setValue] = useState(0);

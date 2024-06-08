@@ -14,7 +14,7 @@ public class AggregateProduct {
     public String parentId;
     public int previousInterval;
     public int interval;
-    public Long productId;
+    public String productGroup;
     public Date timeStamp = new Date();
     public Long quantity;
     public String act;
@@ -24,14 +24,15 @@ public class AggregateProduct {
     public AggregateProduct() {
     }
 
-    public AggregateProduct(int interval, int previousInterval, Long productId, String act, Long quantity,
+    public AggregateProduct(int interval, int previousInterval, String productGroup, String act,
+            Long quantity,
             double price) {
         this.id = UUID.randomUUID().toString();
         this.previousInterval = previousInterval;
         this.interval = interval;
-        this.productId = productId;
         this.act = act;
         this.quantity = quantity;
+        this.productGroup = productGroup;
     }
 
     public String getId() {
@@ -64,14 +65,6 @@ public class AggregateProduct {
 
     public void setInterval(int interval) {
         this.interval = interval;
-    }
-
-    public Long getProductId() {
-        return productId;
-    }
-
-    public void setProductId(Long productId) {
-        this.productId = productId;
     }
 
     public Date getTimeStamp() {
@@ -112,6 +105,14 @@ public class AggregateProduct {
 
     public void setQuantity(Long quantity) {
         this.quantity = quantity;
+    }
+
+    public String getProductGroup() {
+        return productGroup;
+    }
+
+    public void setProductGroup(String productGroup) {
+        this.productGroup = productGroup;
     }
 
 }

@@ -429,7 +429,7 @@ public class LoadTestDataService {
         List<ProductAggregationToStore> aggregationToStoreList = new ArrayList<>();
 
         for (Product product : bottomLevelProducts) {
-            List<AggregateProduct> fiveMinuteDetections = generateProductDetections(product.getId(), oneWeekAgo,
+            List<AggregateProduct> fiveMinuteDetections = generateProductDetections(product.getName(), oneWeekAgo,
                     new Date(), 5);
 
             List<AggregateProduct> fifteenMinuteAggregations = createProductAggregations(fiveMinuteDetections, 15);
@@ -479,7 +479,7 @@ public class LoadTestDataService {
                 aggregateProduct.setParentId(baseDetections.get(i).getId());
                 aggregateProduct.setInterval(targetIntervalInMinutes);
                 aggregateProduct.setPreviousInterval(baseInterval);
-                aggregateProduct.setProductId(baseDetections.get(i).getProductId());
+                aggregateProduct.setProductGroup(baseDetections.get(i).getProductGroup());
                 aggregateProduct.setTimeStamp(baseDetections.get(i).getTimeStamp());
                 aggregateProduct.setAct(baseDetections.get(i).getAct());
                 aggregateProduct.setPrice(sum);
@@ -503,7 +503,7 @@ public class LoadTestDataService {
         return min * count + (max - min) * random.nextDouble() * count;
     }
 
-    private List<AggregateProduct> generateProductDetections(Long productId, Date startDate, Date endDate,
+    private List<AggregateProduct> generateProductDetections(String productGroup, Date startDate, Date endDate,
             int intervalInMinutes) {
         List<AggregateProduct> detections = new ArrayList<>();
         Calendar calendar = Calendar.getInstance();
@@ -517,7 +517,7 @@ public class LoadTestDataService {
             AggregateProduct detection = new AggregateProduct(
                     intervalInMinutes,
                     0,
-                    productId,
+                    productGroup,
                     list.get(rand.nextInt(list.size())),
                     generateRandomCount(),
                     generateRandomSum());

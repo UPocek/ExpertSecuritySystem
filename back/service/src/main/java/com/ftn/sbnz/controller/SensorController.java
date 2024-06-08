@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ftn.sbnz.dtos.ContinuousSensorDTO;
+import com.ftn.sbnz.dtos.SensorDTO;
 import com.ftn.sbnz.model.models.Camera;
 import com.ftn.sbnz.model.models.ContinuousSensor;
 import com.ftn.sbnz.model.models.DiscretSensor;
@@ -27,9 +27,24 @@ public class SensorController {
 	@Autowired
 	public SensorService sensorService;
 
+	@GetMapping("/all")
+	public List<SensorDTO> getAllSensors(@RequestParam Long buildingId) {
+		return sensorService.getAllSensors(buildingId);
+	}
+
 	@GetMapping("/continuous")
-	public List<ContinuousSensorDTO> getContinuousSensors(@RequestParam Long buildingId) {
+	public List<SensorDTO> getContinuousSensors(@RequestParam Long buildingId) {
 		return sensorService.getContinuousSensor(buildingId);
+	}
+
+	@GetMapping("/discrete")
+	public List<SensorDTO> getDiscreteSensors(@RequestParam Long buildingId) {
+		return sensorService.getDiscreteSensors(buildingId);
+	}
+
+	@GetMapping("/camera")
+	public List<SensorDTO> getCameraSensors(@RequestParam Long buildingId) {
+		return sensorService.getCameraSensors(buildingId);
 	}
 
 	@PostMapping("/continuous")

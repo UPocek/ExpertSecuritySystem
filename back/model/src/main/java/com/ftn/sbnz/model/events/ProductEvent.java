@@ -10,7 +10,7 @@ import org.kie.api.definition.type.Timestamp;
 @Timestamp("timeStamp")
 @Expires("15s")
 public class ProductEvent {
-    public Long productId;
+    public String productGroup;
     public String act;
     public String customerId;
     public Date timeStamp;
@@ -19,20 +19,12 @@ public class ProductEvent {
     public ProductEvent() {
     }
 
-    public ProductEvent(Long productId, String act, String customerId, double price) {
-        this.productId = productId;
+    public ProductEvent(String productGroup, String act, String customerId, double price) {
+        this.productGroup = productGroup;
         this.act = act;
         this.customerId = customerId;
         this.timeStamp = new Date();
         this.price = price;
-    }
-
-    public Long getProductId() {
-        return productId;
-    }
-
-    public void setProductId(Long productId) {
-        this.productId = productId;
     }
 
     public String getAct() {
@@ -65,6 +57,14 @@ public class ProductEvent {
 
     public void setPrice(double price) {
         this.price = price;
+    }
+
+    public String getProductGroup() {
+        return productGroup;
+    }
+
+    public void setProductGroup(String productGroup) {
+        this.productGroup = productGroup;
     }
 
 }

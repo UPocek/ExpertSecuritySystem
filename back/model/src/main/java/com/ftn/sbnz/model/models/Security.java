@@ -36,5 +36,22 @@ public class Security {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getCurrentRoomId() {
+        return currentRoomId;
+    }
+
+    public void setCurrentRoomId(Long currentRoomId) {
+        this.currentRoomId = currentRoomId;
+    }
+
+    public Long getBuildingId() {
+        return buildingId;
+    }
+
+    public void setBuildingId(Long buildingId) {
+        this.buildingId = buildingId;
     };
+
 }

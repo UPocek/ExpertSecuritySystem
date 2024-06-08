@@ -1,21 +1,28 @@
 package com.ftn.sbnz.dtos;
 
-public class ContinuousSensorDTO {
+public class SensorDTO {
     public Long id;
     public String type;
     public Long roomId;
     public int low;
     public int high;
+    public boolean isOn;
+    public Long currentRoomId;
+    public Long buildingId;
 
-    public ContinuousSensorDTO() {
+    public SensorDTO() {
     }
 
-    public ContinuousSensorDTO(Long id, String type, Long roomId, int low, int high) {
+    public SensorDTO(Long id, String type, Long roomId, int low, int high, boolean isOn, Long currentRoomId,
+            Long buildingId) {
         this.id = id;
         this.type = type;
         this.roomId = roomId;
         this.low = low;
         this.high = high;
+        this.isOn = isOn;
+        this.currentRoomId = currentRoomId;
+        this.buildingId = buildingId;
     }
 
     public Long getId() {
@@ -56,6 +63,14 @@ public class ContinuousSensorDTO {
 
     public void setHigh(int high) {
         this.high = high;
+    }
+
+    public boolean isOn() {
+        return isOn;
+    }
+
+    public void setOn(boolean isOn) {
+        this.isOn = isOn;
     }
 
 }

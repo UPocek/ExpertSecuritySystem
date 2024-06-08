@@ -22,7 +22,7 @@ export default function Home() {
         console.log(res.data);
         setRooms(res.data);
         const building = (res.data).find(r => r.isContainedIn == null)
-        axios.get(`${baseUrl}/api/sensor/continuous?buildingId=${building.id}`,)
+        axios.get(`${baseUrl}/api/sensor/all?buildingId=${building.id}`,)
           .then(res => {
             console.log(res.data);
             setSensors(res.data);
