@@ -11,6 +11,8 @@ import {
 import { toast } from "sonner";
 import Store from "./Store";
 import GridBuilding from "./GridBuilding";
+import axios from "axios";
+import { baseUrl } from "@/pages/_app";
 
 export default function BuildingSection({ rooms, setRooms, leafRooms }) {
     const [showCreateBuilding, setShowCreateBuilding] = useState(false);
@@ -37,7 +39,6 @@ export default function BuildingSection({ rooms, setRooms, leafRooms }) {
         // Create a copy of the existing array
         const updatedRooms = [...createBuildingRooms];
 
-        // Update the last item in the array
         const lastIndex = updatedRooms.length - 1;
         updatedRooms[lastIndex] = {
             name: value,
@@ -85,8 +86,13 @@ export default function BuildingSection({ rooms, setRooms, leafRooms }) {
 
     function createNewBuilding() {
         const newBuildingRooms = createBuildingRooms.filter(item => item['name']).map(item => { return { 'name': item['name'], 'isContainedIn': item['isContainedIn'] } });
-        // Axios create building
-        setRooms(newBuildingRooms);
+        console.log(newBuildingRooms);
+        axios.post(`${baseUrl}/api/room/building`, newBuildingRooms)
+            .then(res => {
+                console.log(res.data);
+                setRooms(res.data);
+            });
+
     }
 
     return (
@@ -127,7 +133,7 @@ export default function BuildingSection({ rooms, setRooms, leafRooms }) {
                 rooms.length != 0 &&
                 <div className="flex flex-col items-center h-full w-full p-4 border-r-2 border-r-slate-2000">
                     <GridBuilding leafList={leafRooms} />
-                    <Store rooms={rooms} />
+                    <Store rooms={leafRooms} />
                 </div>
             }
         </>

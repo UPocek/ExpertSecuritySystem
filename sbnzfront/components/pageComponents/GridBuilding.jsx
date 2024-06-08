@@ -6,7 +6,7 @@ const GridBuilding = ({ leafList }) => {
     const handleCellClick = (roomName) => {
         const numberOfPeople = Math.floor(Math.random() * 5) + 1;
 
-        axios.post(`${baseUrl}/api/detection?location=${roomName}&numberOfPeople=${numberOfPeople}`)
+        axios.post(`${baseUrl}/api/people_detection?location=${roomName}&numberOfPeople=${numberOfPeople}`)
             .then(response => {
                 console.log(response.data)
             }).catch(error => {

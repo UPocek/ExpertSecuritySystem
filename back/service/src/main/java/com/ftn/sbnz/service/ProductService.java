@@ -5,10 +5,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.ftn.sbnz.dtos.ProductDTO;
 import com.ftn.sbnz.model.models.Product;
 import com.ftn.sbnz.model.models.Room;
 import com.ftn.sbnz.repository.IProductRepository;
 import com.ftn.sbnz.repository.IRoomRepository;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -35,6 +38,21 @@ public class ProductService {
         productRepository.flush();
         return newProduct;
 
+    }
+
+    public Product getProduct(Long id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No product with that id."));
+    }
+
+    public List<ProductDTO> getAllProductsForRoom(Long roomId) {
+        return productRepository.findAllByplacedInId(roomId).stream()
+                .map(p -> new ProductDTO(p.getId(), p.getName(), p.getPlacedIn().getId())).collect(Collectors.toList());
+    }
+
+    public List<ProductDTO> getAllProducts() {
+        return productRepository.findAll().stream()
+                .map(p -> new ProductDTO(p.getId(), p.getName(), p.getPlacedIn().getId())).collect(Collectors.toList());
     }
 
 }

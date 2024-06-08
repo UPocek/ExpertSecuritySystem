@@ -34,7 +34,7 @@ export default function ManageSensors({ rooms, sensors, setSensors }) {
 
     function fireSensor(sensor, value) {
         if (sensor['type'] == 'sound' || sensor['type'] == 'smoke' || sensor['type'] == 'temperature' || sensor['type'] == 'humidity') {
-            axios.get(`${baseUrl}/api/sensor/continuous_reading?sensorId=${sensor['id']}value=${value}`)
+            axios.put(`${baseUrl}/api/sensor/continuous_reading?sensorId=${sensor['id']}value=${value}`)
                 .then(response => {
                     console.log(response.data)
                     toast.info(`Sensor ${sensor['type']} with id ${sensor['id']} fired successfully`);

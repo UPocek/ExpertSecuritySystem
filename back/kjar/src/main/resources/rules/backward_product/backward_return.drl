@@ -20,7 +20,7 @@ no-loop
     $ad: AggregateProduct(act == "return",timeStamp after $startDate, timeStamp before $endDate, interval == $interval, isProcessed == false, $productGroup1: productGroup) 
     isContainedIn($productGroup1, $productGroup;)
   then
-    System.out.println("Okidac 1");
+
     modify($ad){setProcessed(true)};
    if ($filter.getType().equals("average_people_store") || $filter.getType().equals("average_people_reccuring")){
         insert(new ProductReportResult($ad.getAverage(), $startDate, $productGroup, $interval));
@@ -44,7 +44,7 @@ no-loop
     $ad : AggregateProduct(act == "return",interval == $interval, timeStamp after $startDate , timeStamp before $endDate, isProcessed == false,$location1:product)
     isContainedIn($location1, $product;)
   then
-  System.out.println("Okidac 2");
+
     modify($ad){setProcessed(true)};
     if ($filter.getType().equals("average_people_store") || $filter.getType().equals("average_people_reccuring")){
       modify($dpcrr){setProductGroup(($peopleCount + $ad.getAggregation().getAverage())/2)};
@@ -111,14 +111,13 @@ no-loop
     
 end;
 
-rule "Total ranking report 1"
+rule "Total most_return report 1"
 agenda-group "productReport"
 no-loop
   when
-    $filter: ReportFilter(type == "ranking",product == null, $startDate:startDate,$endDate:endDate, $interval:interval)
+    $filter: ReportFilter(type == "most_return",product == null, $startDate:startDate,$endDate:endDate, $interval:interval)
     $l: Location($product:item)
     not(ReportFilter(product == $product))
  then
- System.out.println("Okidac 5");
-    insert(new ReportFilter($startDate, $endDate, null, $product, $interval, "ranking"));
+    insert(new ReportFilter($startDate, $endDate, null, $product, $interval, "most_return"));
 end;

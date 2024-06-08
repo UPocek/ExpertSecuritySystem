@@ -22,6 +22,22 @@ public class Room {
     public Room() {
     }
 
+    public Room(String name) {
+        this.alarm = Alarm.GREEN;
+        this.locked = false;
+        this.name = name;
+        this.isContainedIn = null;
+        this.building = null;
+    }
+
+    public Room(String name, Room containedIn, Room building) {
+        this.alarm = Alarm.GREEN;
+        this.locked = false;
+        this.name = name;
+        this.isContainedIn = containedIn;
+        this.building = building;
+    }
+
     public Room(String name, Room building) {
         this.alarm = Alarm.GREEN;
         this.locked = false;

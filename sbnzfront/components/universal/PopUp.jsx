@@ -89,7 +89,7 @@ export default function PopUp({ rooms, setSensors, setShow }) {
                         </SelectTrigger>
                         <SelectContent>
                             {rooms.map((room, index) => (
-                                <SelectItem key={index} value={room.name}>{room.name}</SelectItem>
+                                <SelectItem key={index} value={room.id}>{room.name}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>

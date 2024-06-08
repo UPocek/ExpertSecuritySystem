@@ -10,4 +10,7 @@ import com.ftn.sbnz.model.models.Product;
 public interface IProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p WHERE p.isContainedIn = ?1")
     List<Product> findByIsContainedIn(Product product);
+
+    List<Product> findAllByplacedInId(Long roomId);
+
 }

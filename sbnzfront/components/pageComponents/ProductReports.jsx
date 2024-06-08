@@ -14,7 +14,7 @@ import { baseUrl } from "@/pages/_app"
 import LineChart from "../universal/LineChart"
 import { toast } from "sonner"
 
-export default function BuildingReports({ rooms }) {
+export default function ProductReports({ products }) {
 
     const [typeOfReport, setTypeOfReport] = useState('');
 
@@ -53,7 +53,7 @@ export default function BuildingReports({ rooms }) {
         }
 
         if (typeOfReport == 'total_daily') {
-            axios.get(`${baseUrl}/api/people_detection/total_daily?location=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}`)
+            axios.get(`${baseUrl}/api/product_detection/total_daily?product=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}`)
                 .then(res => {
                     console.log(res.data);
                     const data = res.data.toSorted((a, b) => new Date(a.startDate) - new Date(b.startDate));
@@ -72,12 +72,12 @@ export default function BuildingReports({ rooms }) {
                             datasets: [
                                 {
                                     data:
-                                        data.map(d => d.peopleCount)
+                                        data.map(d => d.value)
                                 }]
                         })
                 }).catch(err => console.log(err))
         } else if (typeOfReport == 'total_weekly') {
-            axios.get(`${baseUrl}/api/people_detection/total_weekly?location=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}`)
+            axios.get(`${baseUrl}/api/product_detection/total_weekly?product=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}`)
                 .then(res => {
                     console.log(res.data);
                     const data = res.data.toSorted((a, b) => new Date(a.startDate) - new Date(b.startDate));
@@ -97,13 +97,13 @@ export default function BuildingReports({ rooms }) {
                             datasets: [
                                 {
                                     data:
-                                        data.map(d => d.peopleCount)
+                                        data.map(d => d.value)
                                 }]
                         })
                 })
                 .catch(err => console.log(err))
         } else if (typeOfReport == 'total_monthly') {
-            axios.get(`${baseUrl}/api/people_detection/total_monthly?location=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}`)
+            axios.get(`${baseUrl}/api/product_detection/total_monthly?product=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}`)
                 .then(res => {
                     console.log(res.data);
                     const data = res.data.toSorted((a, b) => new Date(a.startDate) - new Date(b.startDate));
@@ -122,19 +122,19 @@ export default function BuildingReports({ rooms }) {
                             datasets: [
                                 {
                                     data:
-                                        data.map(d => d.peopleCount)
+                                        data.map(d => d.value)
                                 }]
                         })
                 })
                 .catch(err => console.log(err))
-        } else if (typeOfReport == 'part_of_day') {
-            axios.get(`${baseUrl}/api/people_detection/part_of_day`)
+        } else if (typeOfReport == 'most_return') {
+            axios.get(`${baseUrl}/api/product_detection//most_return`)
                 .then(res => {
                     console.log(res.data);
                 })
                 .catch(err => console.log(err))
         } else if (typeOfReport == 'ranking') {
-            axios.get(`${baseUrl}/api/people_detection/ranking`)
+            axios.get(`${baseUrl}/api/product_detection/ranking`)
                 .then(res => {
                     console.log(res.data);
                     const data = res.data.toSorted((a, b) => new Date(a.startDate) - new Date(b.startDate));
@@ -153,14 +153,14 @@ export default function BuildingReports({ rooms }) {
                             datasets: [
                                 {
                                     data:
-                                        data.map(d => d.peopleCount)
+                                        data.map(d => d.value)
                                 }]
                         })
                 })
                 .catch(err => console.log(err))
         } else if (typeOfReport == 'average_person_in_store') {
             console.log(reportForRoom)
-            axios.get(`${baseUrl}/api/people_detection/average_person_in_store?storeId=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}`)
+            axios.get(`${baseUrl}/api/product_detection/average_person_in_store?storeId=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}`)
                 .then(res => {
                     console.log(res.data);
                     const data = res.data.toSorted((a, b) => new Date(a.startDate) - new Date(b.startDate));
@@ -179,25 +179,25 @@ export default function BuildingReports({ rooms }) {
                             datasets: [
                                 {
                                     data:
-                                        data.map(d => d.peopleCount)
+                                        data.map(d => d.value)
                                 }]
                         })
                 })
                 .catch(err => console.log(err))
         } else if (typeOfReport == 'average_people_reccuring') {
-            axios.get(`${baseUrl}/api/people_detection/average_people_reccuring`)
+            axios.get(`${baseUrl}/api/product_detection/average_people_reccuring`)
                 .then(res => {
                     console.log(res.data);
                 })
                 .catch(err => console.log(err))
         } else if (typeOfReport == 'max_people_reccuring') {
-            axios.get(`${baseUrl}/api/people_detection/max_people_reccuring`)
+            axios.get(`${baseUrl}/api/product_detection/max_people_reccuring`)
                 .then(res => {
                     console.log(res.data);
                 })
                 .catch(err => console.log(err))
         } else if (typeOfReport == 'min_people_reccuring') {
-            axios.get(`${baseUrl}/api/people_detection/min_people_reccuring`)
+            axios.get(`${baseUrl}/api/product_detection/min_people_reccuring`)
                 .then(res => {
                     console.log(res.data);
                 })
@@ -229,12 +229,12 @@ export default function BuildingReports({ rooms }) {
                     </SelectContent>
                 </Select>
                 <div className="flex items-center gap-2 flex-wrap">
-                    {(typeOfReport == 'total_daily' || typeOfReport == 'total_weekly' || typeOfReport == 'total_monthly' || typeOfReport == 'part_of_day' || typeOfReport == 'average_person_in_store' || typeOfReport == 'average_people_reccuring' || typeOfReport == 'max_people_reccuring' || typeOfReport == 'min_people_reccuring') &&
+                    {(typeOfReport == 'most_return' || typeOfReport == 'total_weekly' || typeOfReport == 'total_monthly' || typeOfReport == 'part_of_day' || typeOfReport == 'average_person_in_store' || typeOfReport == 'average_people_reccuring' || typeOfReport == 'max_people_reccuring' || typeOfReport == 'min_people_reccuring') &&
                         < DatePickerWithRange date={date} setDate={setDate} />}
-                    {(typeOfReport == 'total_daily' || typeOfReport == 'total_weekly' || typeOfReport == 'total_monthly' || typeOfReport == 'part_of_day' || typeOfReport == 'average_people_reccuring' || typeOfReport == 'max_people_reccuring' || typeOfReport == 'min_people_reccuring') &&
+                    {(typeOfReport == 'most_return' || typeOfReport == 'total_weekly' || typeOfReport == 'total_monthly' || typeOfReport == 'part_of_day' || typeOfReport == 'average_people_reccuring' || typeOfReport == 'max_people_reccuring' || typeOfReport == 'min_people_reccuring') &&
                         <Select value={reportForRoom} onValueChange={(newValue) => setReportForRoom(newValue)}>
                             <SelectTrigger className="w-[160px]">
-                                <SelectValue placeholder="Report for room" />
+                                <SelectValue placeholder="Report for product" />
                             </SelectTrigger>
                             <SelectContent>
                                 {rooms.map((room, index) => <SelectItem key={index} value={room.name}>{room.name}</SelectItem>)}

@@ -1,14 +1,18 @@
 package com.ftn.sbnz.controller;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ftn.sbnz.dtos.ContinuousSensorDTO;
 import com.ftn.sbnz.model.models.Camera;
 import com.ftn.sbnz.model.models.ContinuousSensor;
 import com.ftn.sbnz.model.models.DiscretSensor;
@@ -22,6 +26,11 @@ public class SensorController {
 
 	@Autowired
 	public SensorService sensorService;
+
+	@GetMapping("/continuous")
+	public List<ContinuousSensorDTO> getContinuousSensors(@RequestParam Long buildingId) {
+		return sensorService.getContinuousSensor(buildingId);
+	}
 
 	@PostMapping("/continuous")
 	public ContinuousSensor addContinuousSensor(@RequestParam String sensorType, @RequestParam Long roomId) {

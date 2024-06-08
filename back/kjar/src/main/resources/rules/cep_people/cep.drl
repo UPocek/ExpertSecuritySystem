@@ -28,7 +28,6 @@ rule "Create request for 5min aggregation"
   then
     System.out.println("Create request for 5min aggregation");
     insert(new AggregatePeople(5, $location));
-    delete($p);
 end;
 
 rule "Resolve request for 5min aggregation"
@@ -39,15 +38,19 @@ rule "Resolve request for 5min aggregation"
       $max: max($numberOfPeople),
       $sum: sum($numberOfPeople),
       $average: average($numberOfPeople),
-      $count: count($numberOfPeople)
+      $count: count($numberOfPeople),
+      $aggregations: collectList($people)
     )
   then
     System.out.println("Resolve request for 5min aggregation");
     AggregatedDetection agg = new AggregatedDetection(5, 0, $location, new Aggregation(
       $min, $max, $sum, $average, $count
     ));
-    aggregationRepository.save(new AggregationToStore(agg));
-    aggregationRepository.flush();
+    for(Object aggregation : $aggregations) {
+      delete(aggregation);
+    }
+    // aggregationRepository.save(new AggregationToStore(agg));
+    // aggregationRepository.flush();
     insert(agg);
     delete($request);
 end;

@@ -17,6 +17,7 @@ import com.ftn.sbnz.model.models.Camera;
 import com.ftn.sbnz.model.models.ContinuousSensor;
 import com.ftn.sbnz.model.models.Location;
 import com.ftn.sbnz.model.models.Product;
+import com.ftn.sbnz.model.models.ProductAggregationToStore;
 import com.ftn.sbnz.model.models.Room;
 import com.ftn.sbnz.model.models.Security;
 import com.ftn.sbnz.repository.IAggregationsRepository;
@@ -156,9 +157,9 @@ public class SessionManager {
             session = kieContainer.newKieSession("cepPeopleSession");
 
             sessions.put("cepPeopleSession", session);
+            session.setGlobal("aggregationRepository", aggregationsRepository);
         }
 
-        session.setGlobal("aggregationRepository", aggregationsRepository);
         return session;
     }
 
@@ -168,9 +169,9 @@ public class SessionManager {
             session = kieContainer.newKieSession("cepProductSession");
 
             sessions.put("cepProductSession", session);
+            session.setGlobal("productAggregatioinsRepository", productAggregationsRepository);
         }
 
-        session.setGlobal("productAggregatioinsRepository", productAggregationsRepository);
         return session;
     }
 
@@ -201,6 +202,30 @@ public class SessionManager {
         var aggregatedObjects = aggregationsRepository.findAll();
         for (AggregationToStore a : aggregatedObjects) {
             reportSession.insert(a.getAggregationDetection());
+        }
+
+        return reportSession;
+    }
+
+    public KieSession getProductReportSession() {
+        if (reportSessions.get("ReportSessionProduct") != null) {
+            return reportSessions.get("ReportSessionProduct");
+        }
+
+        var reportSession = kieContainer.newKieSession("ReportSessionProduct");
+        var products = productRepository.findAll();
+        for (Product p : products) {
+            if (p.getIsContainedIn() == null) {
+                reportSession.insert(new Location(p.getName(), p.getName()));
+            } else {
+                reportSession
+                        .insert(new Location(p.getName(), p.getIsContainedIn().getName()));
+            }
+        }
+
+        var aggregatedObjects = productAggregationsRepository.findAll();
+        for (ProductAggregationToStore a : aggregatedObjects) {
+            reportSession.insert(a.getAggregateProduct());
         }
 
         return reportSession;

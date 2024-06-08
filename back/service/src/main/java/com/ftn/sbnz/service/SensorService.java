@@ -1,15 +1,18 @@
 package com.ftn.sbnz.service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.drools.core.ClassObjectFilter;
+
 import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.ftn.sbnz.dtos.ContinuousSensorDTO;
 import com.ftn.sbnz.managers.SessionManager;
 import com.ftn.sbnz.model.events.ContinuousSensorEvent;
 import com.ftn.sbnz.model.events.DiscretSensorEvent;
@@ -172,6 +175,13 @@ public class SensorService {
                 .map(o -> (Room) o).collect(Collectors.toList())) {
             System.out.println(o.getAlarm());
         }
+    }
+
+    public List<ContinuousSensorDTO> getContinuousSensor(Long buildingId) {
+        return continuousSensorRepository.findAllByRoomBuildingId(buildingId).stream()
+                .map(s -> new ContinuousSensorDTO(s.getId(), s.getType(), s.getRoom().getId(),
+                        s.getConfig().getCriticalLowValue(), s.getConfig().getCriticalHighValue()))
+                .collect(Collectors.toList());
     }
 
     // @PreDestroy

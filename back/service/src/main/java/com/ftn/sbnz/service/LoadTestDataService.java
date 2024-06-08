@@ -18,11 +18,13 @@ import com.ftn.sbnz.model.models.Aggregation;
 import com.ftn.sbnz.model.models.AggregationToStore;
 import com.ftn.sbnz.model.models.Camera;
 import com.ftn.sbnz.model.models.ContinuousSensor;
+import com.ftn.sbnz.model.models.Product;
 import com.ftn.sbnz.model.models.Room;
 import com.ftn.sbnz.model.models.Security;
 import com.ftn.sbnz.repository.IAggregationsRepository;
 import com.ftn.sbnz.repository.ICameraRepository;
 import com.ftn.sbnz.repository.IContinuousSensorRepository;
+import com.ftn.sbnz.repository.IProductRepository;
 import com.ftn.sbnz.repository.IRoomRepository;
 import com.ftn.sbnz.repository.ISecurityRepository;
 
@@ -43,7 +45,80 @@ public class LoadTestDataService {
     @Autowired
     private IAggregationsRepository aggregationsRepository;
 
+    @Autowired
+    private IProductRepository productRepository;
     private Random random = new Random();
+
+    public void createProducts() {
+        List<Room> bottomLevelRooms = getBottomLevelRooms();
+
+        Product dairySection = new Product("Dairy");
+        Product fruitsSection = new Product("Fruits");
+        Product vegetablesSection = new Product("Vegetables");
+        Product meatSection = new Product("Meat");
+        Product grainsSection = new Product("Grains");
+
+        List<Product> dairySectionProducts = new ArrayList<>();
+        List<Product> fruitsSectionProducts = new ArrayList<>();
+        List<Product> vegetablesSectionProducts = new ArrayList<>();
+        List<Product> meatSectionProducts = new ArrayList<>();
+        List<Product> grainsSectionProducts = new ArrayList<>();
+
+        dairySectionProducts.add(dairySection);
+        dairySectionProducts.add(new Product("Milk", dairySection));
+        dairySectionProducts.add(new Product("Cheese", dairySection));
+        dairySectionProducts.add(new Product("Yogurt", dairySection));
+        dairySectionProducts.add(new Product("Butter", dairySection));
+
+        // Fruits
+        fruitsSectionProducts.add(fruitsSection);
+        fruitsSectionProducts.add(new Product("Apple", fruitsSection));
+        fruitsSectionProducts.add(new Product("Banana", fruitsSection));
+        fruitsSectionProducts.add(new Product("Orange", fruitsSection));
+        fruitsSectionProducts.add(new Product("Strawberry", fruitsSection));
+
+        // Vegetables
+        vegetablesSectionProducts.add(vegetablesSection);
+        vegetablesSectionProducts.add(new Product("Carrot", vegetablesSection));
+        vegetablesSectionProducts.add(new Product("Broccoli", vegetablesSection));
+        vegetablesSectionProducts.add(new Product("Spinach", vegetablesSection));
+        vegetablesSectionProducts.add(new Product("Potato", vegetablesSection));
+
+        // Meat
+        meatSectionProducts.add(meatSection);
+        meatSectionProducts.add(new Product("Chicken Breast", meatSection));
+        meatSectionProducts.add(new Product("Beef Steak", meatSection));
+        meatSectionProducts.add(new Product("Pork Chop", meatSection));
+        meatSectionProducts.add(new Product("Fish Fillet", meatSection));
+
+        // Grains
+        grainsSectionProducts.add(grainsSection);
+        grainsSectionProducts.add(new Product("Rice", grainsSection));
+        grainsSectionProducts.add(new Product("Pasta", grainsSection));
+        grainsSectionProducts.add(new Product("Bread", grainsSection));
+        grainsSectionProducts.add(new Product("Oats", grainsSection));
+
+        List<List<Product>> sections = new ArrayList<>();
+        sections.add(dairySectionProducts);
+        sections.add(fruitsSectionProducts);
+        sections.add(vegetablesSectionProducts);
+        sections.add(meatSectionProducts);
+        sections.add(grainsSectionProducts);
+
+        int i = 0;
+        for (List<Product> section : sections) {
+            for (Product p : section) {
+                p.setPlacedIn(bottomLevelRooms.get(i));
+                p = productRepository.save(p);
+                productRepository.flush();
+            }
+            i += 1;
+            if (i >= bottomLevelRooms.size()) {
+                i = 0;
+            }
+        }
+
+    }
 
     @Transactional
     public void createRoomHierarchy() {

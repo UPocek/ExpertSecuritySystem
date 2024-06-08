@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ftn.sbnz.model.models.PeopleReportResult;
+import com.ftn.sbnz.model.models.ProductReportResult;
 import com.ftn.sbnz.service.ProductDetectionService;
 
 @RestController
@@ -36,11 +37,11 @@ public class ProductDetectionController {
     // }
 
     @GetMapping("/most_return")
-    public List<PeopleReportResult> mostReturnedInDayTime(@RequestParam String product,
+    public List<ProductReportResult> mostReturnedInDayTime(
             @RequestParam String startDate,
             @RequestParam String endDate, @RequestParam String partOfDay) {
 
-        return productDetectionService.mostReturnedInDayTime(product, startDate, endDate, partOfDay);
+        return productDetectionService.mostReturnedInDayTime(startDate, endDate, partOfDay);
     }
 
     @GetMapping("/selling_trend")

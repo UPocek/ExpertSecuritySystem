@@ -20,6 +20,15 @@ public class Product {
     public Product() {
     }
 
+    public Product(String name) {
+        this.name = name;
+    }
+
+    public Product(String name, Product isContainedIn) {
+        this.name = name;
+        this.isContainedIn = isContainedIn;
+    }
+
     public Product(String name, Product isContainedIn, Room placedIn) {
         this.name = name;
         this.isContainedIn = isContainedIn;

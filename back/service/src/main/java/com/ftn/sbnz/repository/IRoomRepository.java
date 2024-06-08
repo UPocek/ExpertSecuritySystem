@@ -14,5 +14,7 @@ public interface IRoomRepository extends JpaRepository<Room, Long> {
     @Query("SELECT r FROM Room r WHERE r.isContainedIn = ?1")
     List<Room> findByIsContainedIn(Room room);
 
+    List<Room> findAllByBuildingId(Long id);
+
     Optional<Room> findByName(String name);
 }

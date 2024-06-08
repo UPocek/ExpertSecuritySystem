@@ -1,10 +1,15 @@
 package com.ftn.sbnz.service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.drools.core.ClassObjectFilter;
 import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +19,8 @@ import org.springframework.web.server.ResponseStatusException;
 import com.ftn.sbnz.managers.SessionManager;
 import com.ftn.sbnz.model.events.ProductEvent;
 import com.ftn.sbnz.model.models.PeopleReportResult;
+import com.ftn.sbnz.model.models.ProductReportResult;
+import com.ftn.sbnz.model.models.ReportFilter;
 import com.ftn.sbnz.repository.IProductRepository;
 
 @Service
@@ -50,15 +57,70 @@ public class ProductDetectionService {
     // return result;
     // }
 
-    public List<PeopleReportResult> mostReturnedInDayTime(String product, String startDate, String endDate,
+    public List<ProductReportResult> mostReturnedInDayTime(String startDate, String endDate,
             String partOfDay) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'mostReturnedInDayTime'");
+        KieSession kieSession = sessionManager.getProductReportSession();
+
+        SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
+        Date startDateParsed;
+        Date endDateParsed;
+        try {
+            startDateParsed = formatter.parse(startDate);
+            endDateParsed = formatter.parse(endDate);
+
+            List<Date[]> monthlyRanges = getDailyTimeRanges(startDateParsed, endDateParsed, partOfDay);
+
+            for (Date[] d : monthlyRanges) {
+                ReportFilter filter = new ReportFilter(d[0], d[1], null, null, 15, "most_return");
+                kieSession.insert(filter);
+            }
+            kieSession.getAgenda().getAgendaGroup("productReport").setFocus();
+            kieSession.fireAllRules();
+            List<ProductReportResult> result = kieSession
+                    .getObjects(new ClassObjectFilter(ProductReportResult.class)).stream()
+                    .map(o -> (ProductReportResult) o).collect(Collectors.toList());
+
+            result.sort(Comparator.comparing(ProductReportResult::getStartDate));
+            kieSession.getAgenda().getAgendaGroup("cleanup").setFocus();
+            kieSession.fireAllRules();
+            return result;
+        } catch (ParseException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
     }
 
     public List<PeopleReportResult> sellingTrend(String product, String startDate, String endDate) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'sellingTrend'");
+        KieSession kieSession = sessionManager.getProductReportSession();
+
+        SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
+        Date startDateParsed;
+        Date endDateParsed;
+        try {
+            startDateParsed = formatter.parse(startDate);
+            endDateParsed = formatter.parse(endDate);
+
+            List<Date[]> dailyRanges = getDailyRanges(startDateParsed, endDateParsed);
+
+            for (Date[] d : dailyRanges) {
+                ReportFilter filter = new ReportFilter(d[0], d[1], null, product, 1440, "selling_trend");
+                kieSession.insert(filter);
+            }
+            kieSession.getAgenda().getAgendaGroup("productReport").setFocus();
+            kieSession.fireAllRules();
+
+            List<PeopleReportResult> result = kieSession
+                    .getObjects(new ClassObjectFilter(PeopleReportResult.class)).stream()
+                    .map(o -> (PeopleReportResult) o).collect(Collectors.toList());
+
+            result.sort(Comparator.comparing(PeopleReportResult::getStartDate));
+
+            kieSession.getAgenda().getAgendaGroup("cleanup").setFocus();
+            kieSession.fireAllRules();
+            return result;
+        } catch (ParseException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
     }
 
     public List<PeopleReportResult> takeReturnRate(String product, String startDate, String endDate) {
