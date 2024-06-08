@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ftn.sbnz.dtos.ReturnSellRateDTO;
 import com.ftn.sbnz.model.models.PeopleReportResult;
 import com.ftn.sbnz.model.models.ProductReportResult;
 import com.ftn.sbnz.service.ProductDetectionService;
@@ -37,11 +38,9 @@ public class ProductDetectionController {
     // }
 
     @GetMapping("/most_return")
-    public List<ProductReportResult> mostReturnedInDayTime(
-            @RequestParam String startDate,
-            @RequestParam String endDate, @RequestParam String partOfDay) {
+    public List<ProductReportResult> mostReturned() {
 
-        return productDetectionService.mostReturnedInDayTime(startDate, endDate, partOfDay);
+        return productDetectionService.mostReturned();
     }
 
     @GetMapping("/selling_trend")
@@ -53,7 +52,7 @@ public class ProductDetectionController {
     }
 
     @GetMapping("/take_return_rate")
-    public List<PeopleReportResult> takeReturnRate(@RequestParam String product,
+    public ReturnSellRateDTO takeReturnRate(@RequestParam String product,
             @RequestParam String startDate,
             @RequestParam String endDate) {
 
@@ -61,7 +60,7 @@ public class ProductDetectionController {
     }
 
     @GetMapping("/money_return_loss")
-    public List<PeopleReportResult> moneyReturnLoss(@RequestParam String product,
+    public List<ProductReportResult> moneyReturnLoss(@RequestParam String product,
             @RequestParam String startDate,
             @RequestParam String endDate) {
 
@@ -69,10 +68,8 @@ public class ProductDetectionController {
     }
 
     @GetMapping("/most_profitable_product")
-    public List<PeopleReportResult> mostProfitableProduct(
-            @RequestParam String startDate,
-            @RequestParam String endDate) {
+    public List<ProductReportResult> mostProfitableProduct() {
 
-        return productDetectionService.mostProfitableProduct(startDate, endDate);
+        return productDetectionService.mostProfitableProduct();
     }
 }

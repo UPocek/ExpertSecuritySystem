@@ -31,6 +31,7 @@ public class AggregateProduct {
         this.interval = interval;
         this.productId = productId;
         this.act = act;
+        this.quantity = quantity;
     }
 
     public String getId() {

@@ -13,17 +13,20 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.ftn.sbnz.model.models.AggregateProduct;
 import com.ftn.sbnz.model.models.AggregatedDetection;
 import com.ftn.sbnz.model.models.Aggregation;
 import com.ftn.sbnz.model.models.AggregationToStore;
 import com.ftn.sbnz.model.models.Camera;
 import com.ftn.sbnz.model.models.ContinuousSensor;
 import com.ftn.sbnz.model.models.Product;
+import com.ftn.sbnz.model.models.ProductAggregationToStore;
 import com.ftn.sbnz.model.models.Room;
 import com.ftn.sbnz.model.models.Security;
 import com.ftn.sbnz.repository.IAggregationsRepository;
 import com.ftn.sbnz.repository.ICameraRepository;
 import com.ftn.sbnz.repository.IContinuousSensorRepository;
+import com.ftn.sbnz.repository.IProductAggregationsRepository;
 import com.ftn.sbnz.repository.IProductRepository;
 import com.ftn.sbnz.repository.IRoomRepository;
 import com.ftn.sbnz.repository.ISecurityRepository;
@@ -44,6 +47,9 @@ public class LoadTestDataService {
 
     @Autowired
     private IAggregationsRepository aggregationsRepository;
+
+    @Autowired
+    private IProductAggregationsRepository productAggregationsRepository;
 
     @Autowired
     private IProductRepository productRepository;
@@ -404,4 +410,131 @@ public class LoadTestDataService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public List<Product> getBottomLevelProducts() {
+        List<Product> allProducts = productRepository.findAll();
+        return allProducts.stream()
+                .filter(product -> productRepository.findByIsContainedIn(product).isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void createAggregationsForBottomLevelProducts() {
+        List<Product> bottomLevelProducts = getBottomLevelProducts();
+        Calendar calendar = Calendar.getInstance();
+        // calendar.add(Calendar.DAY_OF_YEAR, -3);
+        calendar.add(Calendar.MONTH, -4);
+        Date oneWeekAgo = calendar.getTime();
+
+        List<ProductAggregationToStore> aggregationToStoreList = new ArrayList<>();
+
+        for (Product product : bottomLevelProducts) {
+            List<AggregateProduct> fiveMinuteDetections = generateProductDetections(product.getId(), oneWeekAgo,
+                    new Date(), 5);
+
+            List<AggregateProduct> fifteenMinuteAggregations = createProductAggregations(fiveMinuteDetections, 15);
+            List<AggregateProduct> thirtyMinuteAggregations = createProductAggregations(fifteenMinuteAggregations, 30);
+            List<AggregateProduct> sixtyMinuteAggregations = createProductAggregations(thirtyMinuteAggregations, 60);
+            List<AggregateProduct> oneTwentyMinuteAggregations = createProductAggregations(sixtyMinuteAggregations,
+                    120);
+            List<AggregateProduct> twoFortyMinuteAggregations = createProductAggregations(oneTwentyMinuteAggregations,
+                    240);
+            List<AggregateProduct> fourEightyMinuteAggregations = createProductAggregations(twoFortyMinuteAggregations,
+                    480);
+            List<AggregateProduct> oneFourtyFourtyMinuteAggregations = createProductAggregations(
+                    fourEightyMinuteAggregations, 1440);
+
+            // aggregationToStoreList.addAll(convertToProductAggregationToStore(fiveMinuteDetections));
+            // aggregationToStoreList.addAll(convertToProductAggregationToStore(fifteenMinuteAggregations));
+            // aggregationToStoreList.addAll(convertToProductAggregationToStore(thirtyMinuteAggregations));
+            // aggregationToStoreList.addAll(convertToProductAggregationToStore(sixtyMinuteAggregations));
+            // aggregationToStoreList.addAll(convertToProductAggregationToStore(oneTwentyMinuteAggregations));
+            // aggregationToStoreList.addAll(convertToProductAggregationToStore(twoFortyMinuteAggregations));
+            // aggregationToStoreList.addAll(convertToProductAggregationToStore(fourEightyMinuteAggregations));
+            aggregationToStoreList.addAll(convertToProductAggregationToStore(oneFourtyFourtyMinuteAggregations));
+        }
+
+        productAggregationsRepository.saveAll(aggregationToStoreList);
+    }
+
+    private List<AggregateProduct> createProductAggregations(List<AggregateProduct> baseDetections,
+            int targetIntervalInMinutes) {
+        List<AggregateProduct> aggregations = new ArrayList<>();
+        int baseInterval = baseDetections.get(0).getInterval(); // Get the base interval from the detections
+        int factor = targetIntervalInMinutes / baseInterval;
+
+        for (int i = 0; i < baseDetections.size(); i += factor) {
+            if (i + factor <= baseDetections.size()) {
+                double sum = 0;
+                Long count = 0L;
+
+                for (int j = i; j < i + factor; j++) {
+                    AggregateProduct baseAggregation = baseDetections.get(j);
+                    sum += baseAggregation.getPrice();
+                    count += baseAggregation.getQuantity();
+                }
+
+                AggregateProduct aggregateProduct = new AggregateProduct();
+                aggregateProduct.setId(UUID.randomUUID().toString());
+                aggregateProduct.setParentId(baseDetections.get(i).getId());
+                aggregateProduct.setInterval(targetIntervalInMinutes);
+                aggregateProduct.setPreviousInterval(baseInterval);
+                aggregateProduct.setProductId(baseDetections.get(i).getProductId());
+                aggregateProduct.setTimeStamp(baseDetections.get(i).getTimeStamp());
+                aggregateProduct.setAct(baseDetections.get(i).getAct());
+                aggregateProduct.setPrice(sum);
+                aggregateProduct.setQuantity(count);
+
+                aggregations.add(aggregateProduct);
+            }
+        }
+
+        return aggregations;
+    }
+
+    private Long generateRandomCount() {
+        return (long) (1 + random.nextInt(10));
+    }
+
+    private double generateRandomSum() {
+        double min = 10.0 + (50.0 - 10.0) * random.nextDouble();
+        double max = min + (50.0 - min) * random.nextDouble();
+        long count = 1 + random.nextInt(10);
+        return min * count + (max - min) * random.nextDouble() * count;
+    }
+
+    private List<AggregateProduct> generateProductDetections(Long productId, Date startDate, Date endDate,
+            int intervalInMinutes) {
+        List<AggregateProduct> detections = new ArrayList<>();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(startDate);
+
+        while (calendar.getTime().before(endDate)) {
+            Random rand = new Random();
+            List<String> list = new ArrayList<>();
+            list.add("take");
+            list.add("return");
+            AggregateProduct detection = new AggregateProduct(
+                    intervalInMinutes,
+                    0,
+                    productId,
+                    list.get(rand.nextInt(list.size())),
+                    generateRandomCount(),
+                    generateRandomSum());
+            detection.setId(UUID.randomUUID().toString());
+            detection.setParentId(null); // No parent for the base interval
+            detection.setTimeStamp(calendar.getTime());
+            detections.add(detection);
+
+            calendar.add(Calendar.MINUTE, intervalInMinutes);
+        }
+
+        return detections;
+    }
+
+    private List<ProductAggregationToStore> convertToProductAggregationToStore(List<AggregateProduct> detections) {
+        return detections.stream()
+                .map(ProductAggregationToStore::new)
+                .collect(Collectors.toList());
+    }
 }

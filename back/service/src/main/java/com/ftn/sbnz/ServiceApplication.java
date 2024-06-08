@@ -30,6 +30,7 @@ public class ServiceApplication implements CommandLineRunner {
 		// loadTestDataService.createRoomHierarchy();
 		// loadTestDataService.createAggregationsForBottomLevelRooms();
 		// loadTestDataService.createProducts();
+		// loadTestDataService.createAggregationsForBottomLevelProducts();
 	}
 
 	@Bean

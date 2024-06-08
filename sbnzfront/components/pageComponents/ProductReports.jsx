@@ -128,7 +128,7 @@ export default function ProductReports({ products }) {
                 })
                 .catch(err => console.log(err))
         } else if (typeOfReport == 'most_return') {
-            axios.get(`${baseUrl}/api/product_detection//most_return`)
+            axios.get(`${baseUrl}/api/product_detection/most_return`)
                 .then(res => {
                     console.log(res.data);
                 })
@@ -213,7 +213,7 @@ export default function ProductReports({ products }) {
                         <SelectValue placeholder="Report type" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value={'total_daily'}>Total daily report</SelectItem>
+                        <SelectItem value={'most_return'}>Most return</SelectItem>
                         <SelectItem value={'total_weekly'}>Total weekly report</SelectItem>
                         <SelectItem value={'total_monthly'}>Total monthly report</SelectItem>
 
@@ -229,9 +229,9 @@ export default function ProductReports({ products }) {
                     </SelectContent>
                 </Select>
                 <div className="flex items-center gap-2 flex-wrap">
-                    {(typeOfReport == 'most_return' || typeOfReport == 'total_weekly' || typeOfReport == 'total_monthly' || typeOfReport == 'part_of_day' || typeOfReport == 'average_person_in_store' || typeOfReport == 'average_people_reccuring' || typeOfReport == 'max_people_reccuring' || typeOfReport == 'min_people_reccuring') &&
+                    {(typeOfReport == 'total_weekly' || typeOfReport == 'total_monthly' || typeOfReport == 'part_of_day' || typeOfReport == 'average_person_in_store' || typeOfReport == 'average_people_reccuring' || typeOfReport == 'max_people_reccuring' || typeOfReport == 'min_people_reccuring') &&
                         < DatePickerWithRange date={date} setDate={setDate} />}
-                    {(typeOfReport == 'most_return' || typeOfReport == 'total_weekly' || typeOfReport == 'total_monthly' || typeOfReport == 'part_of_day' || typeOfReport == 'average_people_reccuring' || typeOfReport == 'max_people_reccuring' || typeOfReport == 'min_people_reccuring') &&
+                    {(typeOfReport == 'total_weekly' || typeOfReport == 'total_monthly' || typeOfReport == 'part_of_day' || typeOfReport == 'average_people_reccuring' || typeOfReport == 'max_people_reccuring' || typeOfReport == 'min_people_reccuring') &&
                         <Select value={reportForRoom} onValueChange={(newValue) => setReportForRoom(newValue)}>
                             <SelectTrigger className="w-[160px]">
                                 <SelectValue placeholder="Report for product" />

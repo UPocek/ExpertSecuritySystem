@@ -12,12 +12,6 @@ query isContainedIn( String x, String y )
   ( Location( z, y; ) and isContainedIn( x, z; ) )
 end
 
-query isChildOf(String childId, String parentId)
-    AggregatedDetection(childId, parentId;)
-    or
-    ( AggregatedDetection(childId,intermediateId;) and isChildOf(intermediateId, parentId;) )
-end
-
 rule "person report 1"
 agenda-group "peopleReport"
 no-loop

@@ -5,119 +5,83 @@ import com.ftn.sbnz.model.models.AggregateProduct;
 import com.ftn.sbnz.model.models.Location;
 import com.ftn.sbnz.model.models.ProductReportResult;
 
-query isContainedIn( String x, String y )
+query isContainedIn2( String x, String y )
   Location( x, y; )
   or
-  ( Location( z, y; ) and isContainedIn( x, z; ) )
+  ( Location( z, y; ) and isContainedIn2( x, z; ) )
 end
 
-rule "product report 1"
-agenda-group "productReport"
-no-loop
-  when
-    $filter: ReportFilter($productGroup:productGroup,$startDate:startDate,$endDate:endDate, $interval:interval)
-    not(ProductReportResult(productGroup == $productGroup, startDate == $startDate, interval == $interval))
-    $ad: AggregateProduct(act == "return",timeStamp after $startDate, timeStamp before $endDate, interval == $interval, isProcessed == false, $productGroup1: productGroup) 
-    isContainedIn($productGroup1, $productGroup;)
-  then
+// rule "product report 1"
+// agenda-group "productReportReturn"
+// no-loop
+//   when
+//     $filter: ReportFilter($productGroup:productGroup,$startDate:startDate,$endDate:endDate, $interval:interval)
+//     not(ProductReportResult(productGroup == $productGroup, startDate == $startDate, interval == $interval))
+//     $ad: AggregateProduct(act == "return",timeStamp after $startDate, timeStamp before $endDate, interval == $interval, isProcessed == false, $productGroup1: productGroup) 
+//     isContainedIn2($productGroup1, $productGroup;)
+//   then
+//     modify($ad){ setProcessed(true); }
+//     if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
+//       insert(new ProductReportResult($ad.getQuantity(),$startDate, $productGroup, $interval));
+//     } else {
+//       insert(new ProductReportResult($ad.getPrice(),$startDate, $productGroup, $interval));
+//     }
+// end
 
-    modify($ad){setProcessed(true)};
-   if ($filter.getType().equals("average_people_store") || $filter.getType().equals("average_people_reccuring")){
-        insert(new ProductReportResult($ad.getAverage(), $startDate, $productGroup, $interval));
-    }else if($filter.getType().equals("max_people_reccuring")){
-     insert(new ProductReportResult($ad.getMax(), $startDate, $productGroup, $interval));
-    }else if($filter.getType().equals("averagmin_people_reccuringe_people_store")){
-     insert(new ProductReportResult($ad.getMin(), $startDate, $productGroup, $interval));
-    }
-    else{
-        insert(new ProductReportResult($ad.getSum(),$startDate, $productGroup, $interval));
-    }
-    
-end;
+// rule "product report 2"
+// agenda-group "productReportReturn"
+// no-loop
+//   when
+//     $filter: ReportFilter( $product:product,$startDate:startDate,$endDate:endDate, $interval:interval)
+//     $dpcrr: ProductReportResult(product == $product, startDate == $startDate, interval == $interval, $value:value)
+//     $ad : AggregateProduct(act == "return",interval == $interval, timeStamp after $startDate , timeStamp before $endDate, isProcessed == false,$location1:product)
+//     isContainedIn2($location1, $product;)
+//   then
+//     if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
+//       modify($dpcrr){ setValue($value + $ad.getQuantity()); }
+//     } else {
+//       modify($dpcrr){ setValue($value + $ad.getPrice()); }
+//     }
+// end
 
-rule "product report 2"
-agenda-group "productReport"
-no-loop
-  when
-    $filter: ReportFilter( $product:product,$startDate:startDate,$endDate:endDate, $interval:interval)
-    $dpcrr: ProductReportResult(product == $product, startDate == $startDate, interval == $interval, $peopleCount:peopleCount)
-    $ad : AggregateProduct(act == "return",interval == $interval, timeStamp after $startDate , timeStamp before $endDate, isProcessed == false,$location1:product)
-    isContainedIn($location1, $product;)
-  then
+// rule "product report 3"
+// agenda-group "productReportReturn"
+// no-loop
+//   when
+//     $filter: ReportFilter($product:product,$startDate:startDate,$endDate:endDate, $interval:interval)
+//     not(ProductReportResult(product == $product, startDate == $startDate, interval == $interval))
+//     $ad: AggregateProduct(act == "return",timeStamp after $startDate, timeStamp before $endDate, interval == $interval, isProcessed == false, product == $product) 
+//   then
+//     if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
+//       insert(new ProductReportResult($ad.getQuantity(),$startDate, $product, $interval));
+//     } else {
+//       insert(new ProductReportResult($ad.getPrice(),$startDate, $product, $interval));
+//     }
+// end
 
-    modify($ad){setProcessed(true)};
-    if ($filter.getType().equals("average_people_store") || $filter.getType().equals("average_people_reccuring")){
-      modify($dpcrr){setProductGroup(($peopleCount + $ad.getAggregation().getAverage())/2)};
-    }else if($filter.getType().equals("max_people_reccuring")){
-      modify($dpcrr){setProductGroup($peopleCount > $ad.getAggregation().getMax() 
-            ? $peopleCount 
-            : $ad.getAggregation().getMax())};
-    }else if($filter.getType().equals("averagmin_people_reccuringe_people_store")){
-      modify($dpcrr){setProductGroup($peopleCount < $ad.getAggregation().getMin() 
-            ? $peopleCount 
-            : $ad.getAggregation().getMin())};
-    }
-    else{
-        modify($dpcrr){setProductGroup($peopleCount + $ad.getAggregation().getSum())};
-    }
-end;
+// rule "product report 4"
+// agenda-group "productReportReturn"
+// no-loop
+//   when
+//     $filter: ReportFilter($product:product,$startDate:startDate,$endDate:endDate, $interval:interval)
+//     $dpcrr: ProductReportResult(product == $product, startDate == $startDate, interval == $interval, $value:value)
+//     $ad : AggregateProduct(act == "return",interval == $interval, timeStamp after $startDate , timeStamp before $endDate, product == $product,isProcessed == false)
+//   then
+//     modify($ad){ setProcessed(true); }
+//     if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
+//       modify($dpcrr){ setValue($value + $ad.getQuantity()); }
+//     } else {
+//       modify($dpcrr){ setValue($value + $ad.getPrice()); }
+//     }
+// end
 
-rule "product report 3"
-agenda-group "productReport"
-no-loop
-  when
-    $filter: ReportFilter($product:product,$startDate:startDate,$endDate:endDate, $interval:interval)
-    not(ProductReportResult(product == $product, startDate == $startDate, interval == $interval))
-    $ad: AggregateProduct(act == "return",timeStamp after $startDate, timeStamp before $endDate, interval == $interval, isProcessed == false, product == $product) 
-  then
-  System.out.println("Okidac 3");
-    modify($ad){setProcessed(true)};
-    if ($filter.getType().equals("average_people_store") || $filter.getType().equals("average_people_reccuring")) {
-        insert(new ProductReportResult($ad.getAggregation().getAverage(), $startDate, $product, $interval));
-    }else if($filter.getType().equals("max_people_reccuring")){
-     insert(new ProductReportResult($ad.getAggregation().getMax(), $startDate, $product, $interval));
-    }else if($filter.getType().equals("averagmin_people_reccuringe_people_store")){
-     insert(new ProductReportResult($ad.getAggregation().getMin(), $startDate, $product, $interval));
-    }
-    else{
-        insert(new ProductReportResult($ad.getAggregation().getSum(),$startDate, $product, $interval));
-    }
-end;
-
-rule "product report 4"
-agenda-group "productReport"
-no-loop
-  when
-    $filter: ReportFilter($product:product,$startDate:startDate,$endDate:endDate, $interval:interval)
-    $dpcrr: ProductReportResult(product == $product, startDate == $startDate, interval == $interval, $peopleCount:peopleCount)
-    $ad : AggregateProduct(act == "return",interval == $interval, timeStamp after $startDate , timeStamp before $endDate, product == $product,isProcessed == false)
-  then
-  System.out.println("Okidac 4");
-    modify($ad){setProcessed(true)};
-    if ($filter.getType().equals("average_people_store") || $filter.getType().equals("average_people_reccuring")){
-      modify($dpcrr){setProductGroup(($peopleCount + $ad.getAggregation().getAverage())/2)};
-    }else if($filter.getType().equals("max_people_reccuring")){
-      modify($dpcrr){setProductGroup($peopleCount > $ad.getAggregation().getMax() 
-            ? $peopleCount 
-            : $ad.getAggregation().getMax())};
-    }else if($filter.getType().equals("averagmin_people_reccuringe_people_store")){
-      modify($dpcrr){setProductGroup($peopleCount < $ad.getAggregation().getMin() 
-            ? $peopleCount 
-            : $ad.getAggregation().getMin())};
-    }
-    else{
-        modify($dpcrr){setProductGroup($peopleCount + $ad.getAggregation().getSum())};
-    }
-    
-end;
-
-rule "Total most_return report 1"
-agenda-group "productReport"
-no-loop
-  when
-    $filter: ReportFilter(type == "most_return",product == null, $startDate:startDate,$endDate:endDate, $interval:interval)
-    $l: Location($product:item)
-    not(ReportFilter(product == $product))
- then
-    insert(new ReportFilter($startDate, $endDate, null, $product, $interval, "most_return"));
-end;
+// rule "Total most_return report 1"
+// agenda-group "productReportReturn"
+// no-loop
+//   when
+//     $filter: ReportFilter(type == "most_return",product == null, $startDate:startDate,$endDate:endDate, $interval:interval)
+//     $l: Location($product:item)
+//     not(ReportFilter(product == $product))
+//   then
+//     insert(new ReportFilter($startDate, $endDate, null, $product, $interval, "most_return"));
+// end
