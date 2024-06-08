@@ -1,5 +1,5 @@
 import { addDays } from "date-fns"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { DatePickerWithRange } from "../universal/DatePickerRange"
 import {
     Select,
@@ -60,14 +60,12 @@ export default function ProductReports({ products }) {
                     setChartData(
                         {
                             labels: data.map(d => {
-                                {
-                                    let date = new Date(d['startDate']);
-                                    return date.toLocaleString('en-GB', {
-                                        day: 'numeric',
-                                        month: 'long',
-                                        year: 'numeric',
-                                    })
-                                }
+                                let date = new Date(d['startDate']);
+                                return date.toLocaleString('en-GB', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                })
                             }),
                             datasets: [
                                 {
@@ -85,14 +83,12 @@ export default function ProductReports({ products }) {
                     setChartData(
                         {
                             labels: data.map(d => {
-                                {
-                                    let date = new Date(d['startDate']);
-                                    return date.toLocaleString('en-GB', {
-                                        day: 'numeric',
-                                        month: 'long',
-                                        year: 'numeric',
-                                    })
-                                }
+                                let date = new Date(d['startDate']);
+                                return date.toLocaleString('en-GB', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                })
                             }),
                             datasets: [
                                 {
@@ -110,14 +106,12 @@ export default function ProductReports({ products }) {
                     setChartData(
                         {
                             labels: data.map(d => {
-                                {
-                                    let date = new Date(d['startDate']);
-                                    return date.toLocaleString('en-GB', {
-                                        day: 'numeric',
-                                        month: 'long',
-                                        year: 'numeric',
-                                    })
-                                }
+                                let date = new Date(d['startDate']);
+                                return date.toLocaleString('en-GB', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                })
                             }),
                             datasets: [
                                 {
@@ -141,14 +135,12 @@ export default function ProductReports({ products }) {
                     setChartData(
                         {
                             labels: data.map(d => {
-                                {
-                                    let date = new Date(d['startDate']);
-                                    return date.toLocaleString('en-GB', {
-                                        day: 'numeric',
-                                        month: 'long',
-                                        year: 'numeric',
-                                    })
-                                }
+                                let date = new Date(d['startDate']);
+                                return date.toLocaleString('en-GB', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                })
                             }),
                             datasets: [
                                 {
@@ -167,14 +159,12 @@ export default function ProductReports({ products }) {
                     setChartData(
                         {
                             labels: data.map(d => {
-                                {
-                                    let date = new Date(d['startDate']);
-                                    return date.toLocaleString('en-GB', {
-                                        day: 'numeric',
-                                        month: 'long',
-                                        year: 'numeric',
-                                    })
-                                }
+                                let date = new Date(d['startDate']);
+                                return date.toLocaleString('en-GB', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                })
                             }),
                             datasets: [
                                 {
@@ -206,11 +196,11 @@ export default function ProductReports({ products }) {
     }
 
     return (
-        <div className="p-4 w-full overflow-hidden border-b-2 border-b-slate-200">
+        <div className="p-4 w-full overflow-hidden">
             <div className="flex flex-col gap-4 w-full">
                 <Select value={typeOfReport} onValueChange={(newValue) => setTypeOfReport(newValue)}>
                     <SelectTrigger className="w-[250px]">
-                        <SelectValue placeholder="Report type" />
+                        <SelectValue placeholder="Product report type" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value={'most_return'}>Most return</SelectItem>
@@ -282,7 +272,6 @@ export default function ProductReports({ products }) {
             <div className="mt-10">
                 <LineChart data={chartData} />
             </div>
-
 
         </div>)
 }

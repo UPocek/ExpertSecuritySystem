@@ -133,7 +133,7 @@ export default function BuildingSection({ rooms, setRooms, leafRooms }) {
                 rooms.length != 0 &&
                 <div className="flex flex-col items-center h-full w-full p-4 border-r-2 border-r-slate-2000">
                     <GridBuilding leafList={leafRooms} />
-                    <Store rooms={leafRooms} />
+                    <Store leafList={leafRooms} />
                 </div>
             }
         </>
