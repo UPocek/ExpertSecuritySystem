@@ -11,13 +11,18 @@ import {
 } from "@/components/ui/select"
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useRouter } from "next/router";
 
 export default function RecommendationPage() {
+
+    const router = useRouter();
 
     const [building, setBuilding] = useState({});
     const [rooms, setRooms] = useState([]);
     const [roomsConfigurations, setRoomsConfigurations] = useState([]);
-    const leafRooms = useMemo(() => getLeafRooms(rooms), [rooms])
+    const leafRooms = useMemo(() => getLeafRooms(rooms), [rooms]);
+
+    const [step, setStep] = useState(1);
 
     const [buildingPurpose, setBuildingPurpose] = useState('')
 
@@ -27,7 +32,7 @@ export default function RecommendationPage() {
                 setRooms(res.data);
                 const tempList = []
                 for (let room of getLeafRooms(res.data)) {
-                    tempList.push({ 'roomId': room.id, 'size': 0, 'securityLevel': 'LOW', 'type': '' })
+                    tempList.push({ 'roomId': room.id, 'size': 0, 'securityLevel': 'LOW', 'type': '', 'workRequest': '', 'workValue': false, 'extraGearRequest': '', 'extraGearValue': false, 'sensors': [] })
                 }
                 setRoomsConfigurations(tempList)
                 const building = (res.data).find(r => r.isContainedIn == null)
@@ -58,7 +63,7 @@ export default function RecommendationPage() {
             return
         }
 
-        const tempConf = [...roomsConfigurations];
+        let tempConf = [...roomsConfigurations];
         for (let conf of tempConf) {
             if (conf['size'] == 0) {
                 toast.error("Room size can't be 0")
@@ -66,8 +71,88 @@ export default function RecommendationPage() {
             }
             conf['type'] = buildingPurpose
         }
-        console.log(tempConf);
-        axios.get(`${baseUrl}/api/room/config?roomId=${roomId}&type=${type}&size=${size}&level=${level}`)
+
+        tempConf = tempConf.map(item => {
+            return {
+                'roomId': item.roomId, 'size': item.size, 'securityLevel': item.securityLevel, 'type': item.type
+            }
+        })
+
+        axios.post(`${baseUrl}/api/room/config`, { 'config': tempConf })
+            .then(response => {
+                let newConf = [];
+                for (let i = 0; i < roomsConfigurations.length; i++) {
+                    if (response.data[i].workRequest == null && response.data[i].extraGearRequest == null) {
+                        conf['sensors'] = response.data[i].sensors
+                    }
+                    let conf = roomsConfigurations[i];
+                    if (response.data[i].workRequest != null) {
+                        conf['workRequest'] = response.data[i].workRequest.type
+                    }
+                    if (response.data[i].extraGearRequest != null) {
+                        conf['extraGearRequest'] = response.data[i].extraGearRequest.type
+                    }
+
+                    newConf.push(conf)
+                    setStep(2);
+                }
+                setRoomsConfigurations(newConf)
+            })
+            .catch(err => console.log(err))
+    }
+
+    function stepTwo() {
+        let newConf = [];
+        let countFinished = 0;
+        for (let conf of roomsConfigurations) {
+            if (conf['workRequest'] != '') {
+                axios.post(`${baseUrl}/api/room/config/work?roomId=${conf['roomId']}&type=${conf['workRequest']}&response=${conf['workValue']}`)
+                    .then(response => {
+                        if (response.data.workRequest == null && response.data.extraGearRequest == null) {
+                            conf['sensors'] = response.data.sensors;
+                            countFinished++;
+                        }
+                        let conf = roomsConfigurations[i];
+                        if (response.data[i].workRequest != null) {
+                            conf['workRequest'] = response.data.workRequest.type
+                        } else {
+                            conf['workRequest'] = ''
+                        }
+                        if (response.data[i].extraGearRequest != null) {
+                            conf['extraGearRequest'] = response.data.extraGearRequest.type
+                        } else {
+                            conf['extraGearRequest'] = ''
+                        }
+                    })
+                    .catch(err => console.log(err))
+            }
+            if (conf['extraGearRequest'] != '') {
+                axios.post(`${baseUrl}/api/room/config/gear?roomId=${conf['roomId']}&type=${conf['extraGearRequest']}&response=${conf['extraGearValue']}`)
+                    .then(response => {
+                        if (response.data.workRequest == null && response.data.extraGearRequest == null) {
+                            conf['sensors'] = response.data.sensors;
+                            countFinished++;
+                        }
+                        let conf = roomsConfigurations[i];
+                        if (response.data[i].workRequest != null) {
+                            conf['workRequest'] = response.data.workRequest.type
+                        } else {
+                            conf['workRequest'] = ''
+                        }
+                        if (response.data[i].extraGearRequest != null) {
+                            conf['extraGearRequest'] = response.data.extraGearRequest.type
+                        } else {
+                            conf['extraGearRequest'] = ''
+                        }
+                    })
+                    .catch(err => console.log(err))
+            }
+            newConf.push(conf)
+        }
+        setRoomsConfigurations(newConf)
+        if (countFinished == roomsConfigurations.length) {
+            setStep(3)
+        }
     }
 
     return (
@@ -92,7 +177,8 @@ export default function RecommendationPage() {
                     </div>
                 }
 
-                <Button className='mt-4' onClick={stepOne}>Next</Button>
+                {(step == 1 || step == 2) && <Button className='mt-8' onClick={step == 1 ? stepOne : stepTwo}>Next</Button>}
+                {(step == 3) && <Button className='mt-8' onClick={() => { router.replace('/'); toast.success(`Purchase sensors are commign to building ${building.name}`) }}>Purchase</Button>}
             </div>
         </div>
     )

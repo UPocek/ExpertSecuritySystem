@@ -1,5 +1,6 @@
 package com.ftn.sbnz.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ftn.sbnz.dtos.RoomConfigResponseDTO;
 import com.ftn.sbnz.dtos.RoomDTO;
+import com.ftn.sbnz.dtos.RoomDetailsDTO;
+import com.ftn.sbnz.dtos.RoomDetailsInnerDTO;
 import com.ftn.sbnz.model.models.Level;
 import com.ftn.sbnz.model.models.Room;
 import com.ftn.sbnz.model.models.WorkRequest;
@@ -77,6 +80,17 @@ public class RoomController {
             @RequestParam double size,
             @RequestParam String level) {
         return roomService.getRoomConfig(type, size, Level.valueOf(level), roomId);
+
+    }
+
+    @PostMapping("/config")
+    public List<RoomConfigResponseDTO> getRoomConfig(@RequestBody RoomDetailsDTO roomDetailsDTO) {
+        List<RoomConfigResponseDTO> responses = new ArrayList<>();
+        for (RoomDetailsInnerDTO room : roomDetailsDTO.getConfig()) {
+            responses.add(roomService.getRoomConfig(room.getType(), room.getSize(),
+                    Level.valueOf(room.getSecurityLevel()), room.getRoomId()));
+        }
+        return responses;
 
     }
 
