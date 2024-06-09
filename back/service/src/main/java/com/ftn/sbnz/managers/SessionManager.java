@@ -66,8 +66,6 @@ public class SessionManager {
     @Autowired
     private ISecurityRepository securityRepository;
 
-    public static SocketHandler socketHandler;
-
     public KieSession updateSession(String key, KieSession updatedSession) {
 
         sessions.put(key, updatedSession);
@@ -107,8 +105,6 @@ public class SessionManager {
                     newSession.insert(fact);
                 }
             }
-
-            newSession.setGlobal("socketHandler", socketHandler);
 
             updateSession("ForwardSecSession", newSession);
         }
