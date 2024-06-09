@@ -284,6 +284,10 @@ public class LoadTestDataService {
         continuousSensorRepository.save(sensorSmoke);
         continuousSensorRepository.flush();
 
+        ContinuousSensor sensorSound1 = new ContinuousSensor("sound", level2Room2);
+        continuousSensorRepository.save(sensorSound1);
+        continuousSensorRepository.flush();
+
     }
 
     @Transactional

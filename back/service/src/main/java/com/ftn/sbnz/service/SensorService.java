@@ -21,7 +21,6 @@ import com.ftn.sbnz.model.events.DiscretSensorEvent;
 import com.ftn.sbnz.model.models.Camera;
 import com.ftn.sbnz.model.models.ContinuousSensor;
 import com.ftn.sbnz.model.models.DiscretSensor;
-import com.ftn.sbnz.model.models.ProductReportResult;
 import com.ftn.sbnz.model.models.Room;
 import com.ftn.sbnz.model.models.Security;
 import com.ftn.sbnz.repository.ICameraRepository;
@@ -49,12 +48,6 @@ public class SensorService {
 
     @Autowired
     private SessionManager sessionManager;
-
-    // @PostConstruct
-    // public void initialize() {
-    // kieSession = sessionManager.getSession("sensorsKsession");
-    // updateSessionWithSensors();
-    // }
 
     public SensorDTO addContinuousSensor(String sensorType, Long roomId) {
         Optional<Room> room = roomRepository.findById(roomId);
@@ -128,26 +121,9 @@ public class SensorService {
         kieSession.insert(event);
         kieSession.getAgenda().getAgendaGroup("security_template").setFocus();
         kieSession.fireAllRules();
-        for (ContinuousSensorEvent o : kieSession.getObjects(new ClassObjectFilter(ContinuousSensorEvent.class))
-                .stream()
-                .map(o -> (ContinuousSensorEvent) o).collect(Collectors.toList())) {
-            System.out.println(o.isProcessed());
-        }
 
         kieSession.getAgenda().getAgendaGroup("security_forward").setFocus();
         kieSession.fireAllRules();
-        // for (ContinuousSensorEvent o : kieSession.getObjects(new
-        // ClassObjectFilter(ContinuousSensorEvent.class))
-        // .stream()
-        // .map(o -> (ContinuousSensorEvent) o).collect(Collectors.toList())) {
-        // System.out.println(o.getLevel());
-        // }
-
-        // for (Room o : kieSession.getObjects(new ClassObjectFilter(Room.class))
-        // .stream()
-        // .map(o -> (Room) o).collect(Collectors.toList())) {
-        // System.out.println(o.getAlarm());
-        // }
     }
 
     public void discretSensorReading(Long sensorId) {
@@ -172,17 +148,18 @@ public class SensorService {
         kieSession.insert(event);
         kieSession.getAgenda().getAgendaGroup("security_forward").setFocus();
         kieSession.fireAllRules();
-        for (DiscretSensorEvent o : kieSession.getObjects(new ClassObjectFilter(DiscretSensorEvent.class))
-                .stream()
-                .map(o -> (DiscretSensorEvent) o).collect(Collectors.toList())) {
-            System.out.println(o.getType());
-        }
+    }
 
-        for (Room o : kieSession.getObjects(new ClassObjectFilter(Room.class))
-                .stream()
-                .map(o -> (Room) o).collect(Collectors.toList())) {
-            System.out.println(o.getAlarm());
-        }
+    public void securitySensorReading(String type, Long sensorId, Long roomId) {
+        securityRepository.findById(sensorId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No camera with that id"));
+        KieSession kieSession = sessionManager.getSecuritySession();
+
+        DiscretSensorEvent event = new DiscretSensorEvent(type, roomId, sensorId);
+
+        kieSession.insert(event);
+        kieSession.getAgenda().getAgendaGroup("security_forward").setFocus();
+        kieSession.fireAllRules();
     }
 
     public List<SensorDTO> getContinuousSensor(Long buildingId) {

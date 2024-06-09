@@ -35,7 +35,6 @@ public class SocketHandler extends TextWebSocketHandler {
     }
 
     public static void sendMessage(MessageDTO message) {
-        System.out.println("aaa");
         String alarmMessage = new Gson().toJson(message);
         for (WebSocketSession session : SESSIONS) {
             try {

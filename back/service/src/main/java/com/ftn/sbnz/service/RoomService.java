@@ -104,10 +104,6 @@ public class RoomService {
 
         kieSession.getAgenda().getAgendaGroup("config").setFocus();
         kieSession.fireAllRules();
-
-        for (Object item : kieSession.getObjects()) {
-            System.out.println(item);
-        }
         for (RoomDetailsInnerDTO room : rooms.getConfig()) {
             responses.add(getResponesForConfig(kieSession, room.getRoomId()));
         }

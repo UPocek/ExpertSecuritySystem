@@ -21,11 +21,23 @@ export default function Home() {
     const ws = new WebSocket(`${wsUrl}/alarm`);
 
     ws.onmessage = function (message) {
+      console.log(message.data)
       const alarm = JSON.parse(message.data);
-      if (!leafRooms.some(r => r.id === alarm.id)) {
-        return;
-      }
+
       if (alarms.some(a => a.id == alarm.id)) {
+        let temp = alarms.find(a => a.id == alarm.id);
+        if (temp.type == 'YELLOW' && alarm.type == 'RED') {
+          let other = alarms.filter(a => a.id != alarm.id);
+          setAlarms([...other, alarm]);
+        }
+        if (temp.type == 'RED' && alarm.type == 'police') {
+          let other = alarms.filter(a => a.id != alarm.id);
+          setAlarms([...other, alarm]);
+        }
+        if (temp.type == 'security' && alarm.type == 'YELLOW') {
+          let other = alarms.filter(a => a.id != alarm.id);
+          setAlarms([...other, alarm]);
+        }
         return;
       }
       setAlarms(prev => [...prev, alarm]);
