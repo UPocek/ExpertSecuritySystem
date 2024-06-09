@@ -63,7 +63,7 @@ export default function ManageSensors({ building, leafRooms, sensors, setSensors
         <>
             {showAddSensor && <PopUp building={building} leafRooms={leafRooms} setSensors={setSensors} setShow={setShowAddSensor} />}
             {editSensor != null && <PopUpEdit sensor={editSensor} sensors={sensors} setSensors={setSensors} setShow={setEditSensor} />}
-            <div className="w-full mt-4">
+            <div className=" h-1/2 w-full mt-4">
                 {(leafRooms.length == 0) &&
                     <div className="text-center">
                         <h2 className="mb-4 text-2xl font-bold text-center">Before adding sensors you need to create building first!</h2>
