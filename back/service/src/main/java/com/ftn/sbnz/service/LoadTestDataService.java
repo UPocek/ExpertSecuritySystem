@@ -19,6 +19,7 @@ import com.ftn.sbnz.model.models.Aggregation;
 import com.ftn.sbnz.model.models.AggregationToStore;
 import com.ftn.sbnz.model.models.Camera;
 import com.ftn.sbnz.model.models.ContinuousSensor;
+import com.ftn.sbnz.model.models.DiscretSensor;
 import com.ftn.sbnz.model.models.Product;
 import com.ftn.sbnz.model.models.ProductAggregationToStore;
 import com.ftn.sbnz.model.models.Room;
@@ -26,6 +27,7 @@ import com.ftn.sbnz.model.models.Security;
 import com.ftn.sbnz.repository.IAggregationsRepository;
 import com.ftn.sbnz.repository.ICameraRepository;
 import com.ftn.sbnz.repository.IContinuousSensorRepository;
+import com.ftn.sbnz.repository.IDiscretSensorRepository;
 import com.ftn.sbnz.repository.IProductAggregationsRepository;
 import com.ftn.sbnz.repository.IProductRepository;
 import com.ftn.sbnz.repository.IRoomRepository;
@@ -44,6 +46,8 @@ public class LoadTestDataService {
 
     @Autowired
     private IContinuousSensorRepository continuousSensorRepository;
+    @Autowired
+    private IDiscretSensorRepository discretSensorRepository;
 
     @Autowired
     private IAggregationsRepository aggregationsRepository;
@@ -142,13 +146,13 @@ public class LoadTestDataService {
         level1Room2 = roomRepository.save(level1Room2);
 
         // Create level 2 rooms
-        // Room level2Room1 = new Room("Level 2 Room 1", root);
-        // level2Room1.setIsContainedIn(level1Room1);
-        // level2Room1 = roomRepository.save(level2Room1);
+        Room level2Room1 = new Room("Level 2 Room 1", root);
+        level2Room1.setIsContainedIn(level1Room1);
+        level2Room1 = roomRepository.save(level2Room1);
 
-        // Room level2Room2 = new Room("Level 2 Room 2", root);
-        // level2Room2.setIsContainedIn(level1Room1);
-        // level2Room2 = roomRepository.save(level2Room2);
+        Room level2Room2 = new Room("Level 2 Room 2", root);
+        level2Room2.setIsContainedIn(level1Room1);
+        level2Room2 = roomRepository.save(level2Room2);
 
         // Room level2Room3 = new Room("Level 2 Room 3", root);
         // level2Room3.setIsContainedIn(level1Room2);
@@ -256,7 +260,7 @@ public class LoadTestDataService {
         // level4Room16.setIsContainedIn(level3Room8);
         // level4Room16 = roomRepository.save(level4Room16);
 
-        Camera camera = new Camera(level1Room1);
+        Camera camera = new Camera(level2Room2);
         cameraRepository.save(camera);
         cameraRepository.flush();
 
@@ -268,15 +272,15 @@ public class LoadTestDataService {
         securityRepository.save(security2);
         securityRepository.flush();
 
-        ContinuousSensor sensorMotion = new ContinuousSensor("motion", level1Room1);
-        continuousSensorRepository.save(sensorMotion);
+        DiscretSensor sensorMotion = new DiscretSensor("motion", level2Room2);
+        discretSensorRepository.save(sensorMotion);
         continuousSensorRepository.flush();
 
-        ContinuousSensor sensorSound = new ContinuousSensor("sound", level1Room1);
+        ContinuousSensor sensorSound = new ContinuousSensor("sound", level2Room1);
         continuousSensorRepository.save(sensorSound);
         continuousSensorRepository.flush();
 
-        ContinuousSensor sensorSmoke = new ContinuousSensor("smoke", level1Room1);
+        ContinuousSensor sensorSmoke = new ContinuousSensor("smoke", level2Room1);
         continuousSensorRepository.save(sensorSmoke);
         continuousSensorRepository.flush();
 

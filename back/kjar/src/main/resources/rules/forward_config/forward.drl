@@ -9,16 +9,18 @@ import com.ftn.sbnz.model.models.ExtraGearRequest;
 import com.ftn.sbnz.model.models.ExtraGearResponse;
 
 rule "Room request 1"
+agenda-group "config"
 when
     $rr: RoomRequest(type == "living", size > 10, level == Level.HIGH, $roomId:roomId)
 then
-    System.out.println("Room request 1");
+    System.out.println("Room request 1 ");
     insert(new SensorRequest($roomId,"camera","living",Level.HIGH, 4));
     insert(new WorkRequest($roomId,"bring_electricity"));
     delete($rr);
 end;
 
 rule "Room request 2"
+agenda-group "config"
 when
     $rr: RoomRequest(type == "living", size > 10, level == Level.MEDIUM, $roomId:roomId)
 then
@@ -29,6 +31,7 @@ then
 end;
 
 rule "Room request 3"
+agenda-group "config"
 when
     $rr: RoomRequest(type == "living", size < 10, level == Level.MEDIUM, $roomId:roomId)
 then
@@ -39,6 +42,7 @@ then
 end;
 
 rule "Room request 4"
+agenda-group "config"
 when
     $rr: RoomRequest(type == "work", size > 10, level == Level.HIGH, $roomId:roomId)
 then
@@ -50,6 +54,7 @@ then
 end;
 
 rule "Room request 5"
+agenda-group "config"
 when
     $rr: RoomRequest(type == "work", size < 10, level == Level.HIGH, $roomId:roomId)
 then
@@ -61,6 +66,7 @@ then
 end;
 
 rule "Room request 6"
+agenda-group "config"
 when
     $rr: RoomRequest(type == "work", size > 10, level == Level.MEDIUM, $roomId:roomId)
 then
@@ -72,6 +78,7 @@ then
 end;
 
 rule "Room request 7"
+agenda-group "config"
 when
     $rr: RoomRequest(type == "work", size < 10, level == Level.MEDIUM, $roomId:roomId)
 then
@@ -83,44 +90,64 @@ then
 end;
 
 rule "Room request 8"
+agenda-group "config"
 when
     $wr: WorkResponse(type == "bring_electricity", $roomId:roomId, $success: success)
     $w: WorkRequest(roomId == $roomId, type == "bring_electricity")
 then
-    System.out.println("Room request 8");
+    System.out.println("Room request 8 room: " + $roomId);
     modify($w){setSuccess($success)};
     modify($w){setProcessed(true)};
+    System.out.println("Work req status: success:" + $w.success + " isProcessed:"+$w.isProcessed);
     delete($wr);
 end;
 
 rule "Room request 9"
+agenda-group "config"
 when    
     $s: SensorRequest(type == "camera", $roomId:roomId)
     $w: WorkRequest(roomId == $roomId, type == "bring_electricity", success == false, isProcessed == true)
 then
     System.out.println("Room request 9");
     modify($s){setPower("battery")};
+    delete($w);
+end;
+
+rule "Room request 18"
+agenda-group "config"
+when    
+    $s: SensorRequest(type == "motion", $roomId:roomId)
+    $w: WorkRequest(roomId == $roomId, type == "bring_electricity", success == false, isProcessed == true)
+then
+    System.out.println("Room request 18");
+    delete($s);
+    delete($w);
 end;
 
 rule "Room request 10"
+agenda-group "config"
 when
     $s: SensorRequest(type == "camera", building == "living", $roomId:roomId)
     $w: WorkRequest(roomId == $roomId, type == "bring_electricity", success == true, isProcessed == true)
 then
     System.out.println("Room request 10");
     modify($s){setPower("wifi")};
+    delete($w);
 end;
 
 rule "Room request 11"
+agenda-group "config"
 when
     $s: SensorRequest(type == "camera", building == "work", $roomId:roomId)
     $w: WorkRequest(roomId == $roomId, type == "bring_electricity", success == false, isProcessed == true)
 then
     System.out.println("Room request 11");
     modify($s){setPower("IP")};
+    delete($w);
 end;
 
 rule "Room request 12"
+agenda-group "config"
 when
     $s: SensorRequest(type == "camera", level == Level.MEDIUM, power == "battery", $roomId:roomId)
 then
@@ -129,6 +156,7 @@ then
 end;
 
 rule "Room request 13"
+agenda-group "config"
 when
     $s: SensorRequest(type == "camera", level == Level.HIGH, power == "battery", $roomId:roomId)
 then
@@ -137,6 +165,7 @@ then
 end;
 
 rule "Room request 14"
+agenda-group "config"
 when
     $s: SensorRequest(type == "camera", power == "wifi", $roomId:roomId)
 then
@@ -145,6 +174,7 @@ then
 end;
 
 rule "Room request 15"
+agenda-group "config"
 when
     $s: SensorRequest(type == "camera", power == "IP", $roomId:roomId)
 then
@@ -153,6 +183,7 @@ then
 end;
 
 rule "Room request 16"
+agenda-group "config"
 when
     $s: SensorRequest(type == "camera", power == "wifi", $roomId:roomId)
     $wreq: WorkRequest(roomId == $roomId, type == "setup_app")
@@ -163,6 +194,7 @@ then
 end;
 
 rule "Room request 17"
+agenda-group "config"
 when
     $eg1: ExtraGearRequest(type == "service_monitoring", $roomId: roomId)
     $eg2: ExtraGearResponse(type == "service_monitoring", roomId == $roomId, response == false)

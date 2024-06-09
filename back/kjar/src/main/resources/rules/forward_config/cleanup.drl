@@ -1,0 +1,22 @@
+// package com.ftn.sbnz.rules.forward_config;
+
+// import com.ftn.sbnz.model.models.WorkRequest;
+// import com.ftn.sbnz.model.models.ExtraGearRequest;
+
+// rule "Remove work"
+// agenda-group "cleanup"
+// no-loop
+//     when
+//         $wr: WorkRequest(success == true)
+//     then
+//         delete($wr);
+// end;
+
+// rule "Remove extra gear"
+// agenda-group "cleanup"
+// no-loop
+//     when
+//         $egr: ExtraGearRequest(response == true)
+//     then
+//         delete($egr);
+// end;

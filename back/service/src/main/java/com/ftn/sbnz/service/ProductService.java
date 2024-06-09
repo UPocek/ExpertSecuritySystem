@@ -46,7 +46,7 @@ public class ProductService {
     }
 
     public List<ProductDTO> getAllProductsForRoom(Long roomId) {
-        return productRepository.findAllByplacedInId(roomId).stream()
+        return productRepository.findAllByplacedInId(roomId).stream().filter(p -> p.getIsContainedIn() != null)
                 .map(p -> new ProductDTO(p.getId(), p.getName(), p.getPlacedIn().getId())).collect(Collectors.toList());
     }
 

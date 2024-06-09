@@ -168,18 +168,17 @@ public class SensorService {
         kieSession.insert(event);
         kieSession.getAgenda().getAgendaGroup("security_forward").setFocus();
         kieSession.fireAllRules();
-        // for (DiscretSensorEvent o : kieSession.getObjects(new
-        // ClassObjectFilter(DiscretSensorEvent.class))
-        // .stream()
-        // .map(o -> (DiscretSensorEvent) o).collect(Collectors.toList())) {
-        // System.out.println(o.getType());
-        // }
+        for (DiscretSensorEvent o : kieSession.getObjects(new ClassObjectFilter(DiscretSensorEvent.class))
+                .stream()
+                .map(o -> (DiscretSensorEvent) o).collect(Collectors.toList())) {
+            System.out.println(o.getType());
+        }
 
-        // for (Room o : kieSession.getObjects(new ClassObjectFilter(Room.class))
-        // .stream()
-        // .map(o -> (Room) o).collect(Collectors.toList())) {
-        // System.out.println(o.getAlarm());
-        // }
+        for (Room o : kieSession.getObjects(new ClassObjectFilter(Room.class))
+                .stream()
+                .map(o -> (Room) o).collect(Collectors.toList())) {
+            System.out.println(o.getAlarm());
+        }
     }
 
     public List<SensorDTO> getContinuousSensor(Long buildingId) {

@@ -1,6 +1,5 @@
 package com.ftn.sbnz.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -13,13 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ftn.sbnz.dtos.RoomConfigRequestsDTO;
 import com.ftn.sbnz.dtos.RoomConfigResponseDTO;
 import com.ftn.sbnz.dtos.RoomDTO;
 import com.ftn.sbnz.dtos.RoomDetailsDTO;
-import com.ftn.sbnz.dtos.RoomDetailsInnerDTO;
-import com.ftn.sbnz.model.models.Level;
 import com.ftn.sbnz.model.models.Room;
-import com.ftn.sbnz.model.models.WorkRequest;
 import com.ftn.sbnz.service.RoomService;
 
 @RestController
@@ -34,9 +31,6 @@ public class RoomController {
     @GetMapping()
     public Room getRoom(@RequestParam Long id) {
         Room room = roomService.getRoom(id);
-
-        log.debug("Got room: " + room);
-
         return room;
     }
 
@@ -75,32 +69,14 @@ public class RoomController {
         return roomService.addBuilding(roomDTOs);
     }
 
-    @GetMapping("/config")
-    public RoomConfigResponseDTO getRoomConfig(@RequestParam Long roomId, @RequestParam String type,
-            @RequestParam double size,
-            @RequestParam String level) {
-        return roomService.getRoomConfig(type, size, Level.valueOf(level), roomId);
-
-    }
-
     @PostMapping("/config")
     public List<RoomConfigResponseDTO> getRoomConfig(@RequestBody RoomDetailsDTO roomDetailsDTO) {
-        List<RoomConfigResponseDTO> responses = new ArrayList<>();
-        for (RoomDetailsInnerDTO room : roomDetailsDTO.getConfig()) {
-            responses.add(roomService.getRoomConfig(room.getType(), room.getSize(),
-                    Level.valueOf(room.getSecurityLevel()), room.getRoomId()));
-        }
-        return responses;
+        return roomService.getRoomConfig(roomDetailsDTO);
 
     }
 
-    @PostMapping("/config/work")
-    public RoomConfigResponseDTO addWorkResponse(Long roomId, String type, boolean response) {
-        return roomService.addWorkResponse(roomId, type, response);
-    }
-
-    @PostMapping("/config/gear")
-    public RoomConfigResponseDTO addGearResponse(Long roomId, String type, boolean response) {
-        return roomService.addExtraGearResponse(roomId, type, response);
+    @PostMapping("/config/requests")
+    public List<RoomConfigResponseDTO> addWorkResponse(@RequestBody RoomConfigRequestsDTO responses) {
+        return roomService.addResponses(responses);
     }
 }

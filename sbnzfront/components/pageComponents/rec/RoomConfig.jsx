@@ -42,7 +42,7 @@ export default function RoomConfig({ index, room, roomsConfigurations, setRoomsC
                 <div>
                     <p className="mb-4">For room <span className="underline">{room.name}</span>  we recommend these sensors:</p>
                     <div className="flex flex-col gap-4">
-                        {roomsConfigurations[index].sensors.map((sensor) => <p key={sensor}>{sensor}</p>)}
+                        {roomsConfigurations[index].sensors.map((sensor) => <p key={JSON.stringify(sensor)}>{JSON.stringify(sensor)}</p>)}
                     </div>
                 </div>
             }

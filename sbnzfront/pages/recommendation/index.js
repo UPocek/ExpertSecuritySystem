@@ -82,20 +82,20 @@ export default function RecommendationPage() {
             .then(response => {
                 let newConf = [];
                 for (let i = 0; i < roomsConfigurations.length; i++) {
-                    if (response.data[i].workRequest == null && response.data[i].extraGearRequest == null) {
-                        conf['sensors'] = response.data[i].sensors
-                    }
                     let conf = roomsConfigurations[i];
                     if (response.data[i].workRequest != null) {
-                        conf['workRequest'] = response.data[i].workRequest.type
+                        conf['workRequest'] = response.data[i].workRequest[0].type
                     }
                     if (response.data[i].extraGearRequest != null) {
-                        conf['extraGearRequest'] = response.data[i].extraGearRequest.type
+                        conf['extraGearRequest'] = response.data[i].extraGearRequest[0].type
+                    }
+                    if (response.data[i].sensors != null) {
+                        conf['sensors'] = response.data[i].sensors
                     }
 
                     newConf.push(conf)
-                    setStep(2);
                 }
+                setStep(2);
                 setRoomsConfigurations(newConf)
             })
             .catch(err => console.log(err))
@@ -108,17 +108,18 @@ export default function RecommendationPage() {
             if (conf['workRequest'] != '') {
                 axios.post(`${baseUrl}/api/room/config/work?roomId=${conf['roomId']}&type=${conf['workRequest']}&response=${conf['workValue']}`)
                     .then(response => {
+                        console.log(response.data)
                         if (response.data.workRequest == null && response.data.extraGearRequest == null) {
                             conf['sensors'] = response.data.sensors;
                             countFinished++;
                         }
-                        if (response.data[i].workRequest != null) {
-                            conf['workRequest'] = response.data.workRequest.type
+                        if (response.data.workRequest != null) {
+                            conf['workRequest'] = response.data.workRequest[0].type
                         } else {
                             conf['workRequest'] = ''
                         }
-                        if (response.data[i].extraGearRequest != null) {
-                            conf['extraGearRequest'] = response.data.extraGearRequest.type
+                        if (response.data.extraGearRequest != null) {
+                            conf['extraGearRequest'] = response.data.extraGearRequest[0].type
                         } else {
                             conf['extraGearRequest'] = ''
                         }
@@ -128,17 +129,18 @@ export default function RecommendationPage() {
             else if (conf['extraGearRequest'] != '') {
                 axios.post(`${baseUrl}/api/room/config/gear?roomId=${conf['roomId']}&type=${conf['extraGearRequest']}&response=${conf['extraGearValue']}`)
                     .then(response => {
+                        console.log(response.data)
                         if (response.data.workRequest == null && response.data.extraGearRequest == null) {
                             conf['sensors'] = response.data.sensors;
                             countFinished++;
                         }
-                        if (response.data[i].workRequest != null) {
-                            conf['workRequest'] = response.data.workRequest.type
+                        if (response.data.workRequest != null) {
+                            conf['workRequest'] = response.data.workRequest[0].type
                         } else {
                             conf['workRequest'] = ''
                         }
-                        if (response.data[i].extraGearRequest != null) {
-                            conf['extraGearRequest'] = response.data.extraGearRequest.type
+                        if (response.data.extraGearRequest != null) {
+                            conf['extraGearRequest'] = response.data.extraGearRequest[0].type
                         } else {
                             conf['extraGearRequest'] = ''
                         }
