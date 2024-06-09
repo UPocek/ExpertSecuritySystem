@@ -72,8 +72,7 @@ export default function ManageSensors({ building, leafRooms, sensors, setSensors
                 {(leafRooms.length > 0 && sensors.length == 0 && !showAddSensor) &&
                     <div className="text-center">
                         <h2 className="mb-4 text-2xl font-bold text-center">{`You don't have any sensors added!`}</h2>
-                        < Button onClick={() => setShowAddSensor(true)
-                        }> Add new sensor</Button >
+                        < Button onClick={() => setShowAddSensor(true)}> Add new sensor</Button >
                     </div >
                 }
                 {
@@ -81,7 +80,14 @@ export default function ManageSensors({ building, leafRooms, sensors, setSensors
                     <div className="text-left w-full flex flex-col gap-4">
                         {sensorsByRoom.map((room) => (
                             <div className="w-full" key={room.roomId}>
-                                <h2 className="mb-4 text-2xl font-bold">{`Room ${room.name} sensors:`}</h2>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-2xl font-bold">{`Room ${room.name} sensors:`}</h2>
+                                    {(leafRooms.length > 0) &&
+                                        <div className="text-center">
+                                            <Button onClick={() => setShowAddSensor(true)}> Add new sensor</Button >
+                                        </div>
+                                    }
+                                </div>
                                 <div className="flex items-center gap-2 flex-wrap">
                                     {room.sensors.map((sensor, index) => (
                                         <SensorCard key={sensor.id} sensor={sensor} name={`Sensor${index + 1}`} action={fireSensor} editAction={setEditSensor} />
