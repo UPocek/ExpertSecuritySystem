@@ -112,7 +112,6 @@ export default function RecommendationPage() {
                             conf['sensors'] = response.data.sensors;
                             countFinished++;
                         }
-                        let conf = roomsConfigurations[i];
                         if (response.data[i].workRequest != null) {
                             conf['workRequest'] = response.data.workRequest.type
                         } else {
@@ -133,7 +132,6 @@ export default function RecommendationPage() {
                             conf['sensors'] = response.data.sensors;
                             countFinished++;
                         }
-                        let conf = roomsConfigurations[i];
                         if (response.data[i].workRequest != null) {
                             conf['workRequest'] = response.data.workRequest.type
                         } else {
@@ -174,7 +172,7 @@ export default function RecommendationPage() {
                 <hr className="my-6" />
 
                 {leafRooms.length > 0 &&
-                    <div className="grid grid-cols-2">
+                    <div className="grid grid-cols-2 gap-4">
                         {leafRooms.map((room, index) => <RoomConfig key={room.name} index={index} room={room} roomsConfigurations={roomsConfigurations} setRoomsConfigurations={setRoomsConfigurations} />)}
                     </div>
                 }

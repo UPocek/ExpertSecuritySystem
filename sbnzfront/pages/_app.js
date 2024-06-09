@@ -4,6 +4,7 @@ import axios from "axios";
 import { Toaster } from 'sonner'
 
 export const baseUrl = 'http://localhost:8080';
+export const wsUrl = "ws://localhost:8080";
 
 axios.interceptors.request.use(
   config => {
