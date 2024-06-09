@@ -124,6 +124,7 @@ export default function BuildingReports({ rooms }) {
         } else if (typeOfReport == 'part_of_day') {
             axios.get(`${baseUrl}/api/people_detection/part_of_day`)
                 .then(res => {
+                    // TODO
                     console.log(res.data);
                 })
                 .catch(err => console.log(err))

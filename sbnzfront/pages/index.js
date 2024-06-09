@@ -13,6 +13,8 @@ export default function Home() {
   const [products, setProducts] = useState([]);
   const [alarms, setAlarms] = useState([]);
   const [sensors, setSensors] = useState([]);
+
+  const [building, setBuilding] = useState({});
   const leafRooms = useMemo(() => getLeafRooms(rooms), [rooms]);
 
   useEffect(() => {
@@ -20,7 +22,6 @@ export default function Home() {
 
     ws.onmessage = function (message) {
       const alarm = JSON.parse(message.data);
-      console.log("Alarm: " + alarm);
       if (!leafRooms.some(r => r.id === alarm.id)) {
         return;
       }
@@ -41,12 +42,11 @@ export default function Home() {
   useEffect(() => {
     axios.get(`${baseUrl}/api/room/building`)
       .then(res => {
-        console.log(res.data);
         setRooms(res.data);
-        const building = (res.data).find(r => r.isContainedIn == null)
+        const building = (res.data).find(r => r.isContainedIn == null);
+        setBuilding(building);
         axios.get(`${baseUrl}/api/sensor/all?buildingId=${building.id}`,)
           .then(res => {
-            console.log(res.data);
             setSensors(res.data);
           })
           .catch(err => console.log(err))
@@ -57,7 +57,6 @@ export default function Home() {
   useEffect(() => {
     axios.get(`${baseUrl}/api/product/all_for_building`)
       .then(res => {
-        console.log(res.data);
         setProducts(res.data);
       })
       .catch(err => console.log(err))
@@ -75,7 +74,6 @@ export default function Home() {
         leafRooms.push(room);
       }
     }
-
     return leafRooms;
   }
 
@@ -85,7 +83,7 @@ export default function Home() {
         <div className="grid grid-cols-3">
           <BuildingSection rooms={rooms} setRooms={setRooms} leafRooms={leafRooms} />
           <MainSection rooms={rooms} products={products} />
-          <SensorSection rooms={leafRooms} alarms={alarms} setAlarms={setAlarms} sensors={sensors} setSensors={setSensors} />
+          <SensorSection building={building} leafRooms={leafRooms} alarms={alarms} setAlarms={setAlarms} sensors={sensors} setSensors={setSensors} />
         </div>
       </section>
     </main>

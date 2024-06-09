@@ -12,16 +12,16 @@ import { Button } from "../ui/button";
 import axios from 'axios';
 import { baseUrl } from '@/pages/_app';
 
-export default function PopUp({ rooms, setSensors, setShow }) {
+export default function PopUp({ building, leafRooms, setSensors, setShow }) {
 
     const [sensorType, setSensorType] = useState('');
-    const [sensorRoom, setSensorRoom] = useState('');
+    const [sensorRoomId, setSensorRoomId] = useState('');
 
     const [low, setLow] = useState(1);
     const [high, setHigh] = useState(5);
 
     function addSensor() {
-        if (sensorType == '' || sensorRoom == '') {
+        if (sensorType == '' || sensorRoomId == '') {
             toast.error('Please fill all fields');
             return;
         }
@@ -37,7 +37,7 @@ export default function PopUp({ rooms, setSensors, setShow }) {
         }
 
         if (sensorType == 'sound' || sensorType == 'smoke' || sensorType == 'temperature' || sensorType == 'humidity') {
-            axios.post(`${baseUrl}/api/sensor/continuous?sensorType=${sensorType}&roomId=${sensorRoom}`)
+            axios.post(`${baseUrl}/api/sensor/continuous?sensorType=${sensorType}&roomId=${sensorRoomId}`)
                 .then(response => {
                     setSensors(prev => [...prev, response.data])
                     axios.put(`${baseUrl}/api/sensor/update_config?sensorId=${response.data['id']}&criticalLowValue=${low}&criticalHighValue=${high}`)
@@ -46,15 +46,27 @@ export default function PopUp({ rooms, setSensors, setShow }) {
                         })
                         .catch(err => console.log(err))
                 }).catch(err => console.log(err));
+        } else if (sensorType == 'camera') {
+            axios.post(`${baseUrl}/api/sensor/camera?&roomId=${sensorRoomId}`)
+                .then(response => {
+                    setSensors(prev => [...prev, response.data])
+                    setShow(false);
+                }).catch(err => console.log(err));
+        } else if (sensorType == 'security') {
+            axios.post(`${baseUrl}/api/sensor/security?&buildingId=${building.id}`)
+                .then(response => {
+                    setSensors(prev => [...prev, response.data])
+                    setShow(false);
+                }).catch(err => console.log(err));
         } else {
-            axios.post(`${baseUrl}/api/sensor/discret?sensorType=${sensorType}&roomId=${sensorRoom}`)
+            axios.post(`${baseUrl}/api/sensor/discret?sensorType=${sensorType}&roomId=${sensorRoomId}`)
                 .then(response => {
                     setSensors(prev => [...prev, response.data])
                     setShow(false);
                 }).catch(err => console.log(err));
         }
 
-        toast.success(`New ${sensorType} added successfully to room ${sensorRoom}`);
+        toast.success(`New ${sensorType} added successfully to room ${sensorRoomId}`);
 
     }
 
@@ -79,16 +91,16 @@ export default function PopUp({ rooms, setSensors, setShow }) {
                             <SelectItem value={'humidity'}>Humidity sensor</SelectItem>
 
                             <SelectItem value={'motion'}>Motion detection</SelectItem>
-                            <SelectItem value={'rfid'}>RFID scanner</SelectItem>
-                            <SelectItem value={'face'}>Face detection camera</SelectItem>
+                            <SelectItem value={'security'}>RFID security</SelectItem>
+                            <SelectItem value={'camera'}>Face detection camera</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Select value={sensorRoom} onValueChange={(newValue) => setSensorRoom(newValue)}>
+                    <Select value={sensorRoomId} onValueChange={(newValue) => setSensorRoomId(newValue)}>
                         <SelectTrigger className="w-[150px]">
                             <SelectValue placeholder="Add sensor to room" />
                         </SelectTrigger>
                         <SelectContent>
-                            {rooms.map((room, index) => (
+                            {leafRooms.map((room, index) => (
                                 <SelectItem key={index} value={room.id}>{room.name}</SelectItem>
                             ))}
                         </SelectContent>

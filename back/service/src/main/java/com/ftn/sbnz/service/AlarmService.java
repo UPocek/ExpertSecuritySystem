@@ -9,7 +9,6 @@ import com.ftn.sbnz.dtos.MessageDTO;
 import com.ftn.sbnz.model.models.Alarm;
 import com.ftn.sbnz.repository.IRoomRepository;
 import com.ftn.sbnz.ws.SocketHandler;
-import com.google.gson.Gson;
 
 @Service
 public class AlarmService {
