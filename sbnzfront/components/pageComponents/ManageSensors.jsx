@@ -40,6 +40,13 @@ export default function ManageSensors({ rooms, sensors, setSensors }) {
                     toast.info(`Sensor ${sensor['type']} with id ${sensor['id']} fired successfully`);
                 })
                 .catch(err => console.log(err))
+        } else if (sensor['type'] == 'camera' || sensor['type'] == 'security') {
+            axios.put(`${baseUrl}/api/sensor/camera_reading?type=${value}&sensorId=${sensor['id']}`)
+                .then(response => {
+                    console.log(response.data)
+                    toast.info(`Sensor ${sensor['type']} with id ${sensor['id']} fired successfully`);
+                })
+                .catch(err => console.log(err))
         } else {
             axios.put(`${baseUrl}/api/sensor/discret_reading?sensorId=${sensor['id']}`)
                 .then(response => {

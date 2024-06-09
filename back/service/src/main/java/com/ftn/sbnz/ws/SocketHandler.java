@@ -3,6 +3,9 @@ package com.ftn.sbnz.ws;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import com.ftn.sbnz.dtos.MessageDTO;
+import com.google.gson.Gson;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,10 +34,11 @@ public class SocketHandler extends TextWebSocketHandler {
         SESSIONS.remove(session);
     }
 
-    public static void sendMessage(String message) {
+    public static void sendMessage(MessageDTO message) {
+        String alarmMessage = new Gson().toJson(message);
         for (WebSocketSession session : SESSIONS) {
             try {
-                session.sendMessage(new TextMessage(message));
+                session.sendMessage(new TextMessage(alarmMessage));
             } catch (IOException e) {
                 try {
                     session.close();
