@@ -9,8 +9,6 @@ import axios from "axios";
 
 export default function ManageSensors({ building, leafRooms, sensors, setSensors }) {
 
-    console.log(sensors);
-
     const [showAddSensor, setShowAddSensor] = useState(false);
     const [editSensor, setEditSensor] = useState(null);
 
@@ -59,6 +57,10 @@ export default function ManageSensors({ building, leafRooms, sensors, setSensors
         }
     }
 
+    function getRoomNameByRoomId(id) {
+        return leafRooms.find(room => room.id == id)['name']
+    }
+
     return (
         <>
             {showAddSensor && <PopUp building={building} leafRooms={leafRooms} setSensors={setSensors} setShow={setShowAddSensor} />}
@@ -81,7 +83,7 @@ export default function ManageSensors({ building, leafRooms, sensors, setSensors
                         {sensorsByRoom.map((room) => (
                             <div className="w-full" key={room.roomId}>
                                 <div className="flex items-center justify-between mb-6">
-                                    <h2 className="text-2xl font-bold">{`Room ${room.name} sensors:`}</h2>
+                                    <h2 className="text-2xl font-bold">{`Room ${getRoomNameByRoomId(room.roomId)} sensors:`}</h2>
                                     {(leafRooms.length > 0) &&
                                         <div className="text-center">
                                             <Button onClick={() => setShowAddSensor(true)}> Add new sensor</Button >

@@ -102,59 +102,18 @@ export default function RecommendationPage() {
     }
 
     function stepTwo() {
-        let newConf = [];
-        let countFinished = 0;
-        for (let conf of roomsConfigurations) {
-            if (conf['workRequest'] != '') {
-                axios.post(`${baseUrl}/api/room/config/work?roomId=${conf['roomId']}&type=${conf['workRequest']}&response=${conf['workValue']}`)
-                    .then(response => {
-                        console.log(response.data)
-                        if (response.data.workRequest == null && response.data.extraGearRequest == null) {
-                            conf['sensors'] = response.data.sensors;
-                            countFinished++;
-                        }
-                        if (response.data.workRequest != null) {
-                            conf['workRequest'] = response.data.workRequest[0].type
-                        } else {
-                            conf['workRequest'] = ''
-                        }
-                        if (response.data.extraGearRequest != null) {
-                            conf['extraGearRequest'] = response.data.extraGearRequest[0].type
-                        } else {
-                            conf['extraGearRequest'] = ''
-                        }
-                    })
-                    .catch(err => console.log(err))
+        tempConf = tempConf.map(item => {
+            return {
+                'roomId': item.roomId, 'workRequest': item['workRequest'], 'workValue': item['workValue'], 'extraGearRequest': item['extraGearRequest'], 'extraGearValue': item['extraGearValue']
             }
-            else if (conf['extraGearRequest'] != '') {
-                axios.post(`${baseUrl}/api/room/config/gear?roomId=${conf['roomId']}&type=${conf['extraGearRequest']}&response=${conf['extraGearValue']}`)
-                    .then(response => {
-                        console.log(response.data)
-                        if (response.data.workRequest == null && response.data.extraGearRequest == null) {
-                            conf['sensors'] = response.data.sensors;
-                            countFinished++;
-                        }
-                        if (response.data.workRequest != null) {
-                            conf['workRequest'] = response.data.workRequest[0].type
-                        } else {
-                            conf['workRequest'] = ''
-                        }
-                        if (response.data.extraGearRequest != null) {
-                            conf['extraGearRequest'] = response.data.extraGearRequest[0].type
-                        } else {
-                            conf['extraGearRequest'] = ''
-                        }
-                    })
-                    .catch(err => console.log(err))
-            } else {
-                countFinished++;
-            }
-            newConf.push(conf)
-        }
-        setRoomsConfigurations(newConf)
-        if (countFinished == roomsConfigurations.length) {
-            setStep(3)
-        }
+        })
+
+        axios.post(`${baseUrl}/api/room/config`, { 'config': tempConf })
+            .then(response => {
+                console.log(response.data)
+            }).catch(err => console.log(err))
+
+        // setStep(3);
     }
 
     return (
