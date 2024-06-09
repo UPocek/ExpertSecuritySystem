@@ -9,8 +9,6 @@ import axios from "axios";
 
 export default function ManageSensors({ building, leafRooms, sensors, setSensors }) {
 
-    console.log(sensors);
-
     const [showAddSensor, setShowAddSensor] = useState(false);
     const [editSensor, setEditSensor] = useState(null);
 
