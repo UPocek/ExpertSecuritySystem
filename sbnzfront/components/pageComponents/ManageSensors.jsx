@@ -7,7 +7,9 @@ import { baseUrl } from '@/pages/_app';
 import { toast } from 'sonner';
 import axios from "axios";
 
-export default function ManageSensors({ rooms, sensors, setSensors }) {
+export default function ManageSensors({ building, leafRooms, sensors, setSensors }) {
+
+    console.log(sensors);
 
     const [showAddSensor, setShowAddSensor] = useState(false);
     const [editSensor, setEditSensor] = useState(null);
@@ -59,27 +61,33 @@ export default function ManageSensors({ rooms, sensors, setSensors }) {
 
     return (
         <>
-            {showAddSensor && <PopUp rooms={rooms} setSensors={setSensors} setShow={setShowAddSensor} />}
+            {showAddSensor && <PopUp building={building} leafRooms={leafRooms} setSensors={setSensors} setShow={setShowAddSensor} />}
             {editSensor != null && <PopUpEdit sensor={editSensor} sensors={sensors} setSensors={setSensors} setShow={setEditSensor} />}
             <div className="w-full mt-4">
-                {(rooms.length == 0) &&
+                {(leafRooms.length == 0) &&
                     <div className="text-center">
                         <h2 className="mb-4 text-2xl font-bold text-center">Before adding sensors you need to create building first!</h2>
                     </div>
                 }
-                {(rooms.length > 0 && sensors.length == 0 && !showAddSensor) &&
+                {(leafRooms.length > 0 && sensors.length == 0 && !showAddSensor) &&
                     <div className="text-center">
                         <h2 className="mb-4 text-2xl font-bold text-center">{`You don't have any sensors added!`}</h2>
-                        < Button onClick={() => setShowAddSensor(true)
-                        }> Add new sensor</Button >
+                        < Button onClick={() => setShowAddSensor(true)}> Add new sensor</Button >
                     </div >
                 }
                 {
-                    (rooms.length > 0 && sensors.length > 0) &&
+                    (leafRooms.length > 0 && sensors.length > 0) &&
                     <div className="text-left w-full flex flex-col gap-4">
                         {sensorsByRoom.map((room) => (
                             <div className="w-full" key={room.roomId}>
-                                <h2 className="mb-4 text-2xl font-bold">{`Room ${room.name} sensors:`}</h2>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-2xl font-bold">{`Room ${room.name} sensors:`}</h2>
+                                    {(leafRooms.length > 0) &&
+                                        <div className="text-center">
+                                            <Button onClick={() => setShowAddSensor(true)}> Add new sensor</Button >
+                                        </div>
+                                    }
+                                </div>
                                 <div className="flex items-center gap-2 flex-wrap">
                                     {room.sensors.map((sensor, index) => (
                                         <SensorCard key={sensor.id} sensor={sensor} name={`Sensor${index + 1}`} action={fireSensor} editAction={setEditSensor} />

@@ -86,13 +86,11 @@ export default function BuildingSection({ rooms, setRooms, leafRooms }) {
 
     function createNewBuilding() {
         const newBuildingRooms = createBuildingRooms.filter(item => item['name']).map(item => { return { 'name': item['name'], 'isContainedIn': item['isContainedIn'] } });
-        console.log(newBuildingRooms);
         axios.post(`${baseUrl}/api/room/building`, newBuildingRooms)
             .then(res => {
                 console.log(res.data);
                 setRooms(res.data);
             });
-
     }
 
     return (
