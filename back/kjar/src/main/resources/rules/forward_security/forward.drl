@@ -45,7 +45,7 @@ when
     $security: Security(currentRoomId == null)
     not(Security(currentRoomId == $room.id))
 then
-    MessageDTO message = new MessageDTO($room.id, "securityNotified",
+    MessageDTO message = new MessageDTO($room.id, "security",
                         String.format("Security notified for room %d", $room.id));
     sendMessage(message);
     modify($security){notifyOnCaution($room.id)};
@@ -60,7 +60,7 @@ when
     not(Security(currentRoomId == $event.roomId))
     $security: Security(currentRoomId != $event.roomId)
 then
-    MessageDTO message = new MessageDTO($event.roomId, "securityNotified",
+    MessageDTO message = new MessageDTO($event.roomId, "security",
                         String.format("Security notified for room %d", $event.roomId));
     sendMessage(message);
     modify($security){notifyOnCaution($event.roomId)};
@@ -76,7 +76,7 @@ when
     not(Security(currentRoomId == $event.roomId))
     $security: Security(currentRoomId != $event.roomId)
 then
-    MessageDTO message = new MessageDTO($event.roomId, "securityNotified",
+    MessageDTO message = new MessageDTO($event.roomId, "security",
                         String.format("Security notified for room %d", $event.roomId));
     sendMessage(message);
     modify($security){notifyOnCaution($event.roomId)};
@@ -151,7 +151,7 @@ when
     $security: Security(buildingId == $room.building.getId())
     not(DiscretSensorEvent(roomId == $room.id,type == "calledPolice"))
 then
-    MessageDTO message = new MessageDTO($room.id, "calledPolice",
+    MessageDTO message = new MessageDTO($room.id, "police",
                         String.format("Called Police for room %s", $room.name));
     sendMessage(message);
     modify($security){callPolice($room.id)};
@@ -182,7 +182,7 @@ when
     $room: Room(id == $event1.roomId)
     $security: Security(currentRoomId != $event1.roomId, buildingId == $room.building.getId())
 then
-    MessageDTO message = new MessageDTO($room.id, "securityNotified",
+    MessageDTO message = new MessageDTO($room.id, "security",
                         String.format("Security notified for room %d", $room.id));
     sendMessage(message);
     modify($security){notifyOnCaution($room.id)};
