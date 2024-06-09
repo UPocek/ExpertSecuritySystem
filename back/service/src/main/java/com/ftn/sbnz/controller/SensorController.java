@@ -13,10 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ftn.sbnz.dtos.SensorDTO;
-import com.ftn.sbnz.model.models.Camera;
 import com.ftn.sbnz.model.models.ContinuousSensor;
-import com.ftn.sbnz.model.models.DiscretSensor;
-import com.ftn.sbnz.model.models.Security;
 import com.ftn.sbnz.service.SensorService;
 
 @RestController
@@ -48,39 +45,24 @@ public class SensorController {
 	}
 
 	@PostMapping("/continuous")
-	public ContinuousSensor addContinuousSensor(@RequestParam String sensorType, @RequestParam Long roomId) {
-		ContinuousSensor newSensor = sensorService.addContinuousSensor(sensorType, roomId);
-
-		log.debug("Added new sensor: " + newSensor);
-
-		return newSensor;
+	public SensorDTO addContinuousSensor(@RequestParam String sensorType, @RequestParam Long roomId) {
+		return sensorService.addContinuousSensor(sensorType, roomId);
 	}
 
 	@PostMapping("/discret")
-	public DiscretSensor addDiscretSensor(@RequestParam String sensorType, @RequestParam Long roomId) {
-		DiscretSensor discretSensor = sensorService.addDiscretSensor(sensorType, roomId);
-
-		log.debug("Added new sensor: " + discretSensor);
-
-		return discretSensor;
+	public SensorDTO addDiscretSensor(@RequestParam String sensorType, @RequestParam Long roomId) {
+		return sensorService.addDiscretSensor(sensorType, roomId);
 	}
 
 	@PostMapping("/camera")
-	public Camera addCamera(@RequestParam Long roomId) {
-		Camera camera = sensorService.addCamera(roomId);
+	public SensorDTO addCamera(@RequestParam Long roomId) {
+		return sensorService.addCamera(roomId);
 
-		log.debug("Added new sensor: " + camera);
-
-		return camera;
 	}
 
 	@PostMapping("/security")
-	public Security addSecurity(@RequestParam Long buildingId) {
-		Security security = sensorService.addSecurity(buildingId);
-
-		log.debug("Added new sensor: " + security);
-
-		return security;
+	public SensorDTO addSecurity(@RequestParam Long buildingId) {
+		return sensorService.addSecurity(buildingId);
 	}
 
 	@PutMapping("/update_config")

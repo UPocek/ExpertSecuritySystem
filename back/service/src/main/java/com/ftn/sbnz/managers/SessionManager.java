@@ -28,6 +28,7 @@ import com.ftn.sbnz.repository.IProductRepository;
 import com.ftn.sbnz.repository.IRoomRepository;
 import com.ftn.sbnz.repository.ISecurityRepository;
 import com.ftn.sbnz.template.KieSessionTemplates;
+import com.ftn.sbnz.ws.SocketHandler;
 
 import org.kie.api.io.ResourceType;
 import org.kie.api.runtime.KieContainer;
@@ -64,6 +65,8 @@ public class SessionManager {
 
     @Autowired
     private ISecurityRepository securityRepository;
+
+    public static SocketHandler socketHandler;
 
     public KieSession updateSession(String key, KieSession updatedSession) {
 
@@ -104,6 +107,8 @@ public class SessionManager {
                     newSession.insert(fact);
                 }
             }
+
+            newSession.setGlobal("socketHandler", socketHandler);
 
             updateSession("ForwardSecSession", newSession);
         }

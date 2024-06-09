@@ -56,7 +56,7 @@ public class SensorService {
     // updateSessionWithSensors();
     // }
 
-    public ContinuousSensor addContinuousSensor(String sensorType, Long roomId) {
+    public SensorDTO addContinuousSensor(String sensorType, Long roomId) {
         Optional<Room> room = roomRepository.findById(roomId);
         if (room.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No room with that id");
@@ -67,7 +67,8 @@ public class SensorService {
 
         sessionManager.updateSecuritySession();
 
-        return sensor;
+        return new SensorDTO(sensor.getId(), sensor.getType(), sensor.getRoom().getId(),
+                sensor.getConfig().getCriticalLowValue(), sensor.getConfig().getCriticalHighValue(), false, null, null);
     }
 
     public ContinuousSensor updateConfig(Long sensorId, int criticalLowValue, int criticalHighValue) {
@@ -87,7 +88,7 @@ public class SensorService {
         return sensorFounded;
     }
 
-    public DiscretSensor addDiscretSensor(String sensorType, Long roomId) {
+    public SensorDTO addDiscretSensor(String sensorType, Long roomId) {
         Optional<Room> room = roomRepository.findById(roomId);
         if (room.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No room with that id");
@@ -95,23 +96,26 @@ public class SensorService {
         DiscretSensor sensor = discretSensorRepository.save(new DiscretSensor(sensorType, room.get()));
         discretSensorRepository.flush();
 
-        return sensor;
+        return new SensorDTO(sensor.getId(), sensor.getType(), sensor.getRoom().getId(),
+                -1, -1, false, null, null);
     }
 
-    public Camera addCamera(Long roomId) {
+    public SensorDTO addCamera(Long roomId) {
         Optional<Room> room = roomRepository.findById(roomId);
         if (room.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No room with that id");
         }
         Camera camera = cameraRepository.save(new Camera(room.get()));
         cameraRepository.flush();
-        return camera;
+        return new SensorDTO(camera.getId(), "camera", camera.getRoom().getId(),
+                -1, -1, camera.isOn(), null, null);
     }
 
-    public Security addSecurity(Long buildingId) {
+    public SensorDTO addSecurity(Long buildingId) {
         Security security = securityRepository.save(new Security(buildingId));
         securityRepository.flush();
-        return security;
+        return new SensorDTO(security.getId(), "security", null,
+                -1, -1, false, security.getCurrentRoomId(), security.getBuildingId());
     }
 
     public void continuousSensorReading(Long sensorId, double value) {

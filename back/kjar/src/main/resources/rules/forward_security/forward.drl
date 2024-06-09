@@ -7,6 +7,10 @@ import com.ftn.sbnz.model.models.Alarm;
 import com.ftn.sbnz.model.models.Room;
 import com.ftn.sbnz.model.events.ContinuousSensorEvent;
 import com.ftn.sbnz.model.events.DiscretSensorEvent;
+import com.ftn.sbnz.ws.SocketHandler;
+import com.ftn.sbnz.dtos.MessageDTO;
+
+global SocketHandler socketHandler;
 
 
 rule "Activate camera if motion is detected and camera is present"
@@ -40,6 +44,9 @@ when
     $security: Security(currentRoomId == null)
     not(Security(currentRoomId == $room.id))
 then
+    MessageDTO message = new MessageDTO($room.id, "securityNotified",
+                        String.format("Security notified for room %d", $room.id));
+    socketHandler.sendMessage(message);
     modify($security){notifyOnCaution($room.id)};
     System.out.println("Security " + $security.id + " moved to: " + $security.currentRoomId);
 end;
@@ -52,6 +59,9 @@ when
     not(Security(currentRoomId == $event.roomId))
     $security: Security(currentRoomId != $event.roomId)
 then
+    MessageDTO message = new MessageDTO($event.roomId, "securityNotified",
+                        String.format("Security notified for room %d", $event.roomId));
+    socketHandler.sendMessage(message);
     modify($security){notifyOnCaution($event.roomId)};
     delete($event);
     System.out.println("motion is detected, Security moved to: " + $security.currentRoomId);
@@ -65,6 +75,9 @@ when
     not(Security(currentRoomId == $event.roomId))
     $security: Security(currentRoomId != $event.roomId)
 then
+    MessageDTO message = new MessageDTO($event.roomId, "securityNotified",
+                        String.format("Security notified for room %d", $event.roomId));
+    socketHandler.sendMessage(message);
     modify($security){notifyOnCaution($event.roomId)};
     delete($event);
     System.out.println("sound or smoke is detected" + "Security " +$security.id +" moved to: " + $security.currentRoomId);
@@ -108,6 +121,9 @@ when
     $event2: DiscretSensorEvent(type == "faceRecognitionFalse", roomId == $event1.getRoomId())
     $room: Room(id == $event1.getRoomId())
 then
+    MessageDTO message = new MessageDTO($room.id, "YELLOW",
+                        String.format("Room %s fired %s alarm because of disaster", $room.name, "YELLOW"));
+    socketHandler.sendMessage(message);
     modify($room){setAlarm(Alarm.YELLOW)};
     delete($event1);
 end;
@@ -119,6 +135,9 @@ when
     $room: Room(id == $event1.getRoomId(), alarm == Alarm.YELLOW)
     $event2: DiscretSensorEvent(type == "faceRecognitionFalse", roomId == $room.id)
 then
+    MessageDTO message = new MessageDTO($room.id, "RED",
+                        String.format("Room %s fired %s alarm because of disaster", $room.name, "RED"));
+    socketHandler.sendMessage(message);
     modify($room){setAlarm(Alarm.RED)};
     modify($room){setLocked(true)};
     delete($event1);
@@ -131,6 +150,9 @@ when
     $security: Security(buildingId == $room.building.getId())
     not(DiscretSensorEvent(roomId == $room.id,type == "calledPolice"))
 then
+    MessageDTO message = new MessageDTO($room.id, "calledPolice",
+                        String.format("Called Police for room %s", $room.name));
+    socketHandler.sendMessage(message);
     modify($security){callPolice($room.id)};
     insert(new DiscretSensorEvent($room.id,"calledPolice"));
 end;
@@ -143,6 +165,9 @@ when
     $event2: DiscretSensorEvent(type == "securityFaceRecognitionFalse", roomId == $event1.roomId)
     $room: Room(id == $event1.roomId)
 then
+    MessageDTO message = new MessageDTO($room.id, "YELLOW",
+                        String.format("Room %s fired %s alarm because of disaster", $room.name, "YELLOW"));
+    socketHandler.sendMessage(message);
     insert(new DiscretSensorEvent($event1.roomId,"notifyTeam"));
     modify($room){setAlarm(Alarm.YELLOW)};
     delete($event1);
@@ -156,6 +181,9 @@ when
     $room: Room(id == $event1.roomId)
     $security: Security(currentRoomId != $event1.roomId, buildingId == $room.building.getId())
 then
+    MessageDTO message = new MessageDTO($room.id, "securityNotified",
+                        String.format("Security notified for room %d", $room.id));
+    socketHandler.sendMessage(message);
     modify($security){notifyOnCaution($room.id)};
     delete($event1);
     System.out.println("Security " +$security.id + " moved to: " + $security.currentRoomId);
@@ -168,6 +196,9 @@ when
     $room: Room(id == $event.roomId, alarm == Alarm.YELLOW)
     $security: Security(currentRoomId == $room.id)
 then
+    MessageDTO message = new MessageDTO($room.id, "RED",
+                        String.format("Room %s fired %s alarm because of disaster", $room.name, "RED"));
+    socketHandler.sendMessage(message);
     modify($room){setAlarm(Alarm.RED)};
     modify($room){setLocked(true)};
     delete($event);
