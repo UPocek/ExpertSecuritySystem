@@ -91,7 +91,7 @@ public class RoomService {
     }
 
     public List<RoomConfigResponseDTO> getRoomConfig(RoomDetailsDTO rooms) {
-        KieSession kieSession = sessionManager.getConfigSession();
+        KieSession kieSession = sessionManager.getConfigSession(true);
         List<RoomConfigResponseDTO> responses = new ArrayList<>();
         for (RoomDetailsInnerDTO room : rooms.getConfig()) {
             roomRepository.findById(room.getRoomId())
@@ -104,10 +104,6 @@ public class RoomService {
 
         kieSession.getAgenda().getAgendaGroup("config").setFocus();
         kieSession.fireAllRules();
-
-        for (Object item : kieSession.getObjects()) {
-            System.out.println(item);
-        }
         for (RoomDetailsInnerDTO room : rooms.getConfig()) {
             responses.add(getResponesForConfig(kieSession, room.getRoomId()));
         }
@@ -116,7 +112,7 @@ public class RoomService {
     }
 
     public List<RoomConfigResponseDTO> addResponses(RoomConfigRequestsDTO responses) {
-        KieSession kieSession = sessionManager.getConfigSession();
+        KieSession kieSession = sessionManager.getConfigSession(false);
         List<RoomConfigResponseDTO> responsesDTO = new ArrayList<>();
         for (RoomResponseDTO rr : responses.getConfig()) {
             if (rr.getWorkResponse() != null) {
@@ -125,7 +121,7 @@ public class RoomService {
             }
             if (rr.getExtraGearResponse() != null) {
                 kieSession.insert(new ExtraGearResponse(rr.getExtraGearResponse().getRoomId(),
-                        rr.getWorkResponse().getType(), rr.getExtraGearResponse().isResponse()));
+                        rr.getExtraGearResponse().getType(), rr.getExtraGearResponse().isResponse()));
             }
 
         }

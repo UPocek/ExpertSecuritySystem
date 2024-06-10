@@ -6,6 +6,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.transaction.Transactional;
+
 import org.drools.core.ClassObjectFilter;
 
 import org.kie.api.runtime.KieSession;
@@ -21,7 +23,6 @@ import com.ftn.sbnz.model.events.DiscretSensorEvent;
 import com.ftn.sbnz.model.models.Camera;
 import com.ftn.sbnz.model.models.ContinuousSensor;
 import com.ftn.sbnz.model.models.DiscretSensor;
-import com.ftn.sbnz.model.models.ProductReportResult;
 import com.ftn.sbnz.model.models.Room;
 import com.ftn.sbnz.model.models.Security;
 import com.ftn.sbnz.repository.ICameraRepository;
@@ -49,12 +50,6 @@ public class SensorService {
 
     @Autowired
     private SessionManager sessionManager;
-
-    // @PostConstruct
-    // public void initialize() {
-    // kieSession = sessionManager.getSession("sensorsKsession");
-    // updateSessionWithSensors();
-    // }
 
     public SensorDTO addContinuousSensor(String sensorType, Long roomId) {
         Optional<Room> room = roomRepository.findById(roomId);
@@ -118,71 +113,126 @@ public class SensorService {
                 -1, -1, false, security.getCurrentRoomId(), security.getBuildingId());
     }
 
+    @Transactional
     public void continuousSensorReading(Long sensorId, double value) {
         ContinuousSensor sensor = continuousSensorRepository.findById(sensorId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No sensor with that id"));
-        KieSession kieSession = sessionManager.getSecuritySession();
+        KieSession kieSession = sessionManager.getSecuritySession(false);
         ContinuousSensorEvent event = new ContinuousSensorEvent(sensor.getType(), sensor.getRoom().getId(), sensorId,
                 value);
 
         kieSession.insert(event);
         kieSession.getAgenda().getAgendaGroup("security_template").setFocus();
         kieSession.fireAllRules();
-        for (ContinuousSensorEvent o : kieSession.getObjects(new ClassObjectFilter(ContinuousSensorEvent.class))
-                .stream()
-                .map(o -> (ContinuousSensorEvent) o).collect(Collectors.toList())) {
-            System.out.println(o.isProcessed());
-        }
 
         kieSession.getAgenda().getAgendaGroup("security_forward").setFocus();
         kieSession.fireAllRules();
-        // for (ContinuousSensorEvent o : kieSession.getObjects(new
-        // ClassObjectFilter(ContinuousSensorEvent.class))
-        // .stream()
-        // .map(o -> (ContinuousSensorEvent) o).collect(Collectors.toList())) {
-        // System.out.println(o.getLevel());
-        // }
 
-        // for (Room o : kieSession.getObjects(new ClassObjectFilter(Room.class))
-        // .stream()
-        // .map(o -> (Room) o).collect(Collectors.toList())) {
-        // System.out.println(o.getAlarm());
+        List<DiscretSensorEvent> result = kieSession
+                .getObjects(new ClassObjectFilter(DiscretSensorEvent.class)).stream()
+                .map(o -> (DiscretSensorEvent) o).filter(e -> e.getType().equals("calledPolice"))
+                .collect(Collectors.toList());
+
+        // if (!result.isEmpty()) {
+        // sessionManager.getSecuritySession(true);
+        // System.out.println("null");
+        // List<Security> securities = securityRepository.findAll();
+        // for (Security security1 : securities) {
+        // security1.setCurrentRoomId(null);
+        // securityRepository.save(security1);
+        // securityRepository.flush();
+
+        // }
         // }
     }
 
+    @Transactional
     public void discretSensorReading(Long sensorId) {
         DiscretSensor sensor = discretSensorRepository.findById(sensorId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No sensor with that id"));
-        KieSession kieSession = sessionManager.getSecuritySession();
+        KieSession kieSession = sessionManager.getSecuritySession(false);
 
         DiscretSensorEvent event = new DiscretSensorEvent(sensor.getType(), sensor.getRoom().getId(), sensorId);
 
         kieSession.insert(event);
         kieSession.getAgenda().getAgendaGroup("security_forward").setFocus();
         kieSession.fireAllRules();
+
+        List<DiscretSensorEvent> result = kieSession
+                .getObjects(new ClassObjectFilter(DiscretSensorEvent.class)).stream()
+                .map(o -> (DiscretSensorEvent) o).filter(e -> e.getType().equals("calledPolice"))
+                .collect(Collectors.toList());
+
+        // if (!result.isEmpty()) {
+        // sessionManager.getSecuritySession(true);
+        // System.out.println("null");
+        // List<Security> securities = securityRepository.findAll();
+        // for (Security security1 : securities) {
+        // security1.setCurrentRoomId(null);
+        // securityRepository.save(security1);
+        // securityRepository.flush();
+
+        // }
+        // }
     }
 
+    @Transactional
     public void cameraSensorReading(String type, Long sensorId) {
         Camera sensor = cameraRepository.findById(sensorId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No camera with that id"));
-        KieSession kieSession = sessionManager.getSecuritySession();
+        KieSession kieSession = sessionManager.getSecuritySession(false);
 
         DiscretSensorEvent event = new DiscretSensorEvent(type, sensor.getRoom().getId(), sensorId);
 
         kieSession.insert(event);
         kieSession.getAgenda().getAgendaGroup("security_forward").setFocus();
         kieSession.fireAllRules();
-        for (DiscretSensorEvent o : kieSession.getObjects(new ClassObjectFilter(DiscretSensorEvent.class))
-                .stream()
-                .map(o -> (DiscretSensorEvent) o).collect(Collectors.toList())) {
-            System.out.println(o.getType());
-        }
 
-        for (Room o : kieSession.getObjects(new ClassObjectFilter(Room.class))
-                .stream()
-                .map(o -> (Room) o).collect(Collectors.toList())) {
-            System.out.println(o.getAlarm());
-        }
+        List<DiscretSensorEvent> result = kieSession
+                .getObjects(new ClassObjectFilter(DiscretSensorEvent.class)).stream()
+                .map(o -> (DiscretSensorEvent) o).filter(e -> e.getType().equals("calledPolice"))
+                .collect(Collectors.toList());
+
+        // if (!result.isEmpty()) {
+        // System.out.println("null");
+        // sessionManager.getSecuritySession(true);
+        // List<Security> securities = securityRepository.findAll();
+        // for (Security security1 : securities) {
+        // security1.setCurrentRoomId(null);
+        // securityRepository.save(security1);
+        // securityRepository.flush();
+
+        // }
+        // }
+    }
+
+    @Transactional
+    public void securitySensorReading(String type, Long sensorId) {
+        Security security = securityRepository.findById(sensorId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No camera with that id"));
+        KieSession kieSession = sessionManager.getSecuritySession(false);
+
+        DiscretSensorEvent event = new DiscretSensorEvent(type, security.getCurrentRoomId(), sensorId);
+
+        kieSession.insert(event);
+        kieSession.getAgenda().getAgendaGroup("security_forward").setFocus();
+        kieSession.fireAllRules();
+        List<DiscretSensorEvent> result = kieSession
+                .getObjects(new ClassObjectFilter(DiscretSensorEvent.class)).stream()
+                .map(o -> (DiscretSensorEvent) o).filter(e -> e.getType().equals("calledPolice"))
+                .collect(Collectors.toList());
+
+        // if (!result.isEmpty()) {
+        // System.out.println("null");
+        // sessionManager.getSecuritySession(true);
+        // List<Security> securities = securityRepository.findAll();
+        // for (Security security1 : securities) {
+        // security1.setCurrentRoomId(null);
+        // securityRepository.save(security1);
+        // securityRepository.flush();
+
+        // }
+        // }
     }
 
     public List<SensorDTO> getContinuousSensor(Long buildingId) {

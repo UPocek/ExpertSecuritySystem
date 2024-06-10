@@ -27,10 +27,10 @@ public class ServiceApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		// loadTestDataService.createRoomHierarchy();
-		// loadTestDataService.createAggregationsForBottomLevelRooms();
-		// loadTestDataService.createProducts();
-		// loadTestDataService.createAggregationsForBottomLevelProducts();
+		loadTestDataService.createRoomHierarchy();
+		loadTestDataService.createAggregationsForBottomLevelRooms();
+		loadTestDataService.createProducts();
+		loadTestDataService.createAggregationsForBottomLevelProducts();
 	}
 
 	@Bean

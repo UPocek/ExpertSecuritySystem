@@ -102,18 +102,58 @@ export default function RecommendationPage() {
     }
 
     function stepTwo() {
+        let tempConf = [...roomsConfigurations];
         tempConf = tempConf.map(item => {
-            return {
-                'roomId': item.roomId, 'workRequest': item['workRequest'], 'workValue': item['workValue'], 'extraGearRequest': item['extraGearRequest'], 'extraGearValue': item['extraGearValue']
+            if (item['workRequest'] == '') {
+                return {
+                    'roomId': item.roomId, 'extraGearResponse': { 'roomId': item.roomId, 'type': item['extraGearRequest'], 'response': item['extraGearValue'] }
+                }
+            } else {
+                return {
+                    'roomId': item.roomId, 'workResponse': { 'roomId': item.roomId, 'type': item['workRequest'], 'success': item['workValue'] }
+                }
             }
-        })
+        }
+        )
 
-        axios.post(`${baseUrl}/api/room/config`, { 'config': tempConf })
+        let finished = 0;
+
+        axios.post(`${baseUrl}/api/room/config/requests`, { 'config': tempConf })
             .then(response => {
                 console.log(response.data)
-            }).catch(err => console.log(err))
+                let newConf = [];
+                for (let i = 0; i < roomsConfigurations.length; i++) {
+                    let conf = roomsConfigurations[i];
+                    conf['workRequest'] = '';
+                    conf['extraGearRequest'] = '';
+                    conf['workValue'] = false;
+                    conf['extraGearValue'] = false;
+                    conf['sensors'] = [];
 
-        // setStep(3);
+                    console.log(i)
+                    console.log(response.data[i].workRequest == null)
+                    console.log(response.data[i].extraGearRequest == null)
+                    if (response.data[i].workRequest == null && response.data[i].extraGearRequest == null) {
+                        finished += 1;
+                        console.log("AAA: " + finished)
+                    }
+                    if (response.data[i].workRequest != null) {
+                        conf['workRequest'] = response.data[i].workRequest[0].type
+                    }
+                    if (response.data[i].extraGearRequest != null) {
+                        conf['extraGearRequest'] = response.data[i].extraGearRequest[0].type
+                    }
+                    if (response.data[i].sensors != null) {
+                        conf['sensors'] = response.data[i].sensors
+                    }
+
+                    newConf.push(conf)
+                }
+                setRoomsConfigurations(newConf)
+                if (finished == roomsConfigurations.length) {
+                    setStep(3);
+                }
+            }).catch(err => console.log(err));
     }
 
     return (

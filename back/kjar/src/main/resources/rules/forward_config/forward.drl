@@ -41,14 +41,45 @@ then
     delete($rr);
 end;
 
+rule "Room request 3a"
+agenda-group "config"
+when
+    $rr: RoomRequest(type == "living", size < 10, level == Level.HIGH, $roomId:roomId)
+then
+    System.out.println("Room request 3a");
+    insert(new SensorRequest($roomId,"camera","living",Level.HIGH, 2));
+    insert(new WorkRequest($roomId,"bring_electricity"));
+    delete($rr);
+end;
+
+rule "Room request 3b"
+agenda-group "config"
+when
+    $rr: RoomRequest(type == "living", size < 10, level == Level.LOW, $roomId:roomId)
+then
+    System.out.println("Room request 3b");
+    insert(new SensorRequest($roomId,"no_sensors"));
+    delete($rr);
+end;
+
+rule "Room request 3c"
+agenda-group "config"
+when
+    $rr: RoomRequest(type == "living", size > 10, level == Level.LOW, $roomId:roomId)
+then
+    System.out.println("Room request 3c");
+    insert(new SensorRequest($roomId,"no sensors"));
+    delete($rr);
+end;
+
 rule "Room request 4"
 agenda-group "config"
 when
     $rr: RoomRequest(type == "work", size > 10, level == Level.HIGH, $roomId:roomId)
 then
     System.out.println("Room request 4");
-    insert(new SensorRequest($roomId,"camera","living",Level.HIGH, 4));
-    insert(new SensorRequest($roomId,"motion","living",Level.HIGH, 2));
+    insert(new SensorRequest($roomId,"camera","work",Level.HIGH, 4));
+    insert(new SensorRequest($roomId,"motion","work",Level.HIGH, 2));
     insert(new WorkRequest($roomId,"bring_electricity"));
     delete($rr);
 end;
@@ -59,8 +90,8 @@ when
     $rr: RoomRequest(type == "work", size < 10, level == Level.HIGH, $roomId:roomId)
 then
     System.out.println("Room request 5");
-    insert(new SensorRequest($roomId,"camera","living",Level.HIGH, 2));
-    insert(new SensorRequest($roomId,"motion","living",Level.HIGH, 2));
+    insert(new SensorRequest($roomId,"camera","work",Level.HIGH, 2));
+    insert(new SensorRequest($roomId,"motion","work",Level.HIGH, 2));
     insert(new WorkRequest($roomId,"bring_electricity"));
     delete($rr);
 end;
@@ -71,8 +102,8 @@ when
     $rr: RoomRequest(type == "work", size > 10, level == Level.MEDIUM, $roomId:roomId)
 then
     System.out.println("Room request 6");
-    insert(new SensorRequest($roomId,"camera","living",Level.MEDIUM, 2));
-    insert(new SensorRequest($roomId,"motion","living",Level.MEDIUM, 4));
+    insert(new SensorRequest($roomId,"camera","work",Level.MEDIUM, 2));
+    insert(new SensorRequest($roomId,"motion","work",Level.MEDIUM, 4));
     insert(new WorkRequest($roomId,"bring_electricity"));
     delete($rr);
 end;
@@ -83,8 +114,30 @@ when
     $rr: RoomRequest(type == "work", size < 10, level == Level.MEDIUM, $roomId:roomId)
 then
     System.out.println("Room request 7");
-    insert(new SensorRequest($roomId,"camera","living",Level.MEDIUM, 1));
-    insert(new SensorRequest($roomId,"motion","living",Level.MEDIUM, 2));
+    insert(new SensorRequest($roomId,"camera","work",Level.MEDIUM, 1));
+    insert(new SensorRequest($roomId,"motion","work",Level.MEDIUM, 2));
+    insert(new WorkRequest($roomId,"bring_electricity"));
+    delete($rr);
+end;
+
+rule "Room request 7a"
+agenda-group "config"
+when
+    $rr: RoomRequest(type == "work", size < 10, level == Level.LOW, $roomId:roomId)
+then
+    System.out.println("Room request 7a");
+    insert(new SensorRequest($roomId,"motion","work",Level.LOW, 1));
+    insert(new WorkRequest($roomId,"bring_electricity"));
+    delete($rr);
+end;
+
+rule "Room request 7c"
+agenda-group "config"
+when
+    $rr: RoomRequest(type == "work", size > 10, level == Level.LOW, $roomId:roomId)
+then
+    System.out.println("Room request 7c");
+    insert(new SensorRequest($roomId,"motion","work",Level.LOW, 2));
     insert(new WorkRequest($roomId,"bring_electricity"));
     delete($rr);
 end;
@@ -93,19 +146,19 @@ rule "Room request 8"
 agenda-group "config"
 when
     $wr: WorkResponse(type == "bring_electricity", $roomId:roomId, $success: success)
-    $w: WorkRequest(roomId == $roomId, type == "bring_electricity")
+    $ws: WorkRequest(roomId == $roomId, type == "bring_electricity")
 then
     System.out.println("Room request 8 room: " + $roomId);
-    modify($w){setSuccess($success)};
-    modify($w){setProcessed(true)};
-    System.out.println("Work req status: success:" + $w.success + " isProcessed:"+$w.isProcessed);
+    modify($ws){setSuccess($success)};
+    modify($ws){setProcessed(true)};
+    System.out.println("Work req status: success:" + $ws.success + " isProcessed:"+$ws.isProcessed);
     delete($wr);
 end;
 
 rule "Room request 9"
 agenda-group "config"
 when    
-    $s: SensorRequest(type == "camera", $roomId:roomId)
+    $s: SensorRequest(type == "camera", building == "living", $roomId:roomId)
     $w: WorkRequest(roomId == $roomId, type == "bring_electricity", success == false, isProcessed == true)
 then
     System.out.println("Room request 9");
@@ -113,14 +166,51 @@ then
     delete($w);
 end;
 
+rule "Room request 9a"
+agenda-group "config"
+when    
+    $s: SensorRequest(type == "camera",building == "work", $roomId:roomId)
+    $m: SensorRequest(type == "motion",building == "work", roomId == $roomId)
+    $w: WorkRequest(roomId == $roomId, type == "bring_electricity", success == false, isProcessed == true)
+then
+    System.out.println("Room request 9a");
+    modify($s){setPower("battery")};
+    modify($m){setPower("battery")};
+    delete($w);
+end;
+
+rule "Room request 9b"
+agenda-group "config"
+when    
+    $s: SensorRequest(type == "camera",building == "work", $roomId:roomId)
+    $m: SensorRequest(type == "motion",building == "work", roomId == $roomId)
+    $w: WorkRequest(roomId == $roomId, type == "bring_electricity", success == true, isProcessed == true)
+then
+    System.out.println("Room request 9b");
+    modify($s){setPower("IP")};
+    insert(new SensorRequest($roomId,"bring_electricity"));
+    delete($w);
+end;
+
 rule "Room request 18"
 agenda-group "config"
 when    
-    $s: SensorRequest(type == "motion", $roomId:roomId)
+    $s: SensorRequest(type == "motion",building == "living", $roomId:roomId)
     $w: WorkRequest(roomId == $roomId, type == "bring_electricity", success == false, isProcessed == true)
 then
     System.out.println("Room request 18");
-    delete($s);
+    modify($s){setPower("battery")};
+    delete($w);
+end;
+
+rule "Room request 18a"
+agenda-group "config"
+when    
+    $s: SensorRequest(type == "motion",building == "work", $roomId:roomId)
+    $w: WorkRequest(roomId == $roomId, type == "bring_electricity", success == false, isProcessed == true)
+then
+    System.out.println("Room request 18a");
+    modify($s){setPower("battery")};
     delete($w);
 end;
 
@@ -132,35 +222,38 @@ when
 then
     System.out.println("Room request 10");
     modify($s){setPower("wifi")};
+    insert(new SensorRequest($roomId,"bring_electricity"));
     delete($w);
 end;
 
-rule "Room request 11"
+rule "Room request 10a"
 agenda-group "config"
 when
-    $s: SensorRequest(type == "camera", building == "work", $roomId:roomId)
-    $w: WorkRequest(roomId == $roomId, type == "bring_electricity", success == false, isProcessed == true)
+    $s: SensorRequest(type == "motion",building == "living", $roomId:roomId)
+    $w: WorkRequest(roomId == $roomId, type == "bring_electricity", success == true, isProcessed == true)
 then
-    System.out.println("Room request 11");
-    modify($s){setPower("IP")};
+    System.out.println("Room request 10a");
+    insert(new SensorRequest($roomId,"bring_electricity"));
+    delete($w);
+end;
+
+rule "Room request 10b"
+agenda-group "config"
+when
+    $s: SensorRequest(type == "motion", building == "work",$roomId:roomId)
+    $w: WorkRequest(roomId == $roomId, type == "bring_electricity", success == true, isProcessed == true)
+then
+    System.out.println("Room request 10b");
+    insert(new SensorRequest($roomId,"bring_electricity"));
     delete($w);
 end;
 
 rule "Room request 12"
 agenda-group "config"
 when
-    $s: SensorRequest(type == "camera", level == Level.MEDIUM, power == "battery", $roomId:roomId)
+    $s: SensorRequest(type == "camera", level in (Level.MEDIUM,Level.HIGH), power == "battery", $roomId:roomId)
 then
     System.out.println("Room request 12");
-    insert(new ExtraGearRequest($roomId,"extra_battery"));
-end;
-
-rule "Room request 13"
-agenda-group "config"
-when
-    $s: SensorRequest(type == "camera", level == Level.HIGH, power == "battery", $roomId:roomId)
-then
-    System.out.println("Room request 13");
     insert(new ExtraGearRequest($roomId,"extra_battery"));
 end;
 
@@ -182,6 +275,33 @@ then
     insert(new WorkRequest($roomId,"dedicated_server_for_memory"));
 end;
 
+rule "Room request 15a"
+agenda-group "config"
+when
+    $s: SensorRequest(type == "camera", power == "IP", $roomId:roomId)
+    $wreq: WorkRequest(roomId == $roomId, type == "dedicated_server_for_memory")
+    $wres: WorkResponse(type == "dedicated_server_for_memory", roomId == $roomId, success == false)
+then
+    System.out.println("Room request 15a");
+    insert(new SensorRequest($roomId,"no_backup"));
+    delete($wreq);
+    delete($wres);
+end;
+
+rule "Room request 15b"
+agenda-group "config"
+no-loop
+when
+    $s: SensorRequest(type == "camera", power == "IP", $roomId:roomId)
+    $wreq: WorkRequest(roomId == $roomId, type == "dedicated_server_for_memory")
+    $wres: WorkResponse(type == "dedicated_server_for_memory", roomId == $roomId, success == true)
+then
+    System.out.println("Room request 15b");
+    insert(new SensorRequest($roomId,"dedicated_server_for_memory"));
+    delete($wreq);
+    delete($wres);
+end;
+
 rule "Room request 16"
 agenda-group "config"
 when
@@ -191,15 +311,71 @@ when
 then
     System.out.println("Room request 16");
     insert(new ExtraGearRequest($roomId,"service_monitoring"));
+    delete($wreq);
+    delete($wres);
+end;
+
+rule "Room request 16a"
+agenda-group "config"
+when
+    $s: SensorRequest(type == "camera", power == "wifi", $roomId:roomId)
+    $wreq: WorkRequest(roomId == $roomId, type == "setup_app")
+    $wres: WorkResponse(type == "setup_app", roomId == $roomId, success == true)
+then
+    System.out.println("Room request 16a");
+    insert(new SensorRequest($roomId,"setup_app"));
+    delete($wreq);
+    delete($wres);
 end;
 
 rule "Room request 17"
 agenda-group "config"
 when
-    $eg1: ExtraGearRequest(type == "service_monitoring", $roomId: roomId)
-    $eg2: ExtraGearResponse(type == "service_monitoring", roomId == $roomId, response == false)
-    $s: SensorRequest(type == "camera", power == "wifi", roomId == $roomId)
+    $eg1: ExtraGearRequest(type == "extra_battery", $roomId: roomId, $response:response)
+    $eg2: ExtraGearResponse(type == "extra_battery", roomId == $roomId, response == false)
+    $s: SensorRequest(type == "camera", power == "battery", roomId == $roomId)
 then
     System.out.println("Room request 17");
     modify($s){setPower("IP")};
+    delete($eg1);
+    delete($eg2);
+end;
+
+rule "Room request 17a"
+agenda-group "config"
+when
+    $eg1: ExtraGearRequest(type == "extra_battery", $roomId: roomId, $response:response)
+    $eg2: ExtraGearResponse(type == "extra_battery", roomId == $roomId, response == true)
+    $s: SensorRequest(type == "camera", power == "battery", roomId == $roomId)
+then
+    System.out.println("Room request 17a");
+    insert(new SensorRequest($roomId,"extra_battery"));
+    delete($eg1);
+    delete($eg2);
+end;
+
+rule "Room request 17b"
+agenda-group "config"
+when
+    $eg1: ExtraGearRequest(type == "service_monitoring", $roomId: roomId, $response:response)
+    $eg2: ExtraGearResponse(type == "service_monitoring", roomId == $roomId, response == false)
+    $s: SensorRequest(type == "camera", power == "wifi", roomId == $roomId)
+then
+    System.out.println("Room request 17b");
+    modify($s){setPower("IP")};
+    delete($eg1);
+    delete($eg2);
+end;
+
+rule "Room request 17c"
+agenda-group "config"
+when
+    $eg1: ExtraGearRequest(type == "service_monitoring", $roomId: roomId, $response:response)
+    $eg2: ExtraGearResponse(type == "service_monitoring", roomId == $roomId, response == true)
+    $s: SensorRequest(type == "camera", power == "wifi", roomId == $roomId)
+then
+    System.out.println("Room request 17c");
+    insert(new SensorRequest($roomId,"service_monitoring"));
+    delete($eg1);
+    delete($eg2);
 end;

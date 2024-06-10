@@ -28,7 +28,6 @@ import com.ftn.sbnz.repository.IProductRepository;
 import com.ftn.sbnz.repository.IRoomRepository;
 import com.ftn.sbnz.repository.ISecurityRepository;
 import com.ftn.sbnz.template.KieSessionTemplates;
-import com.ftn.sbnz.ws.SocketHandler;
 
 import org.kie.api.io.ResourceType;
 import org.kie.api.runtime.KieContainer;
@@ -105,14 +104,14 @@ public class SessionManager {
                     newSession.insert(fact);
                 }
             }
-
+            newSession.setGlobal("securityRepository", securityRepository);
             updateSession("ForwardSecSession", newSession);
         }
     }
 
-    public KieSession getSecuritySession() {
+    public KieSession getSecuritySession(boolean getNew) {
         var session = sessions.get("ForwardSecSession");
-        if (session == null) {
+        if (session == null || getNew) {
             updateSecuritySession();
             session = sessions.get("ForwardSecSession");
 
@@ -142,9 +141,9 @@ public class SessionManager {
         return session;
     }
 
-    public KieSession getConfigSession() {
+    public KieSession getConfigSession(boolean getNew) {
         KieSession session = sessions.get("ForwardConfigSession");
-        if (session == null) {
+        if (session == null || getNew) {
             session = kieContainer.newKieSession("ForwardConfigSession");
             sessions.put("ForwardConfigSession", session);
         }

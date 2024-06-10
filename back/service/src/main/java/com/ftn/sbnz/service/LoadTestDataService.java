@@ -284,6 +284,10 @@ public class LoadTestDataService {
         continuousSensorRepository.save(sensorSmoke);
         continuousSensorRepository.flush();
 
+        ContinuousSensor sensorSound1 = new ContinuousSensor("sound", level2Room2);
+        continuousSensorRepository.save(sensorSound1);
+        continuousSensorRepository.flush();
+
     }
 
     @Transactional
@@ -298,7 +302,7 @@ public class LoadTestDataService {
     public void createAggregationsForBottomLevelRooms() {
         List<Room> bottomLevelRooms = getBottomLevelRooms();
         Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_YEAR, -3);
+        calendar.add(Calendar.DAY_OF_YEAR, -2);
         // calendar.add(Calendar.MONTH, -4);
         Date oneWeekAgo = calendar.getTime();
 
@@ -426,7 +430,7 @@ public class LoadTestDataService {
     public void createAggregationsForBottomLevelProducts() {
         List<Product> bottomLevelProducts = getBottomLevelProducts();
         Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_YEAR, -3);
+        calendar.add(Calendar.DAY_OF_YEAR, -2);
         // calendar.add(Calendar.MONTH, -4);
         Date oneWeekAgo = calendar.getTime();
 

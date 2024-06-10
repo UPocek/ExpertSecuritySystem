@@ -21,14 +21,30 @@ export default function Home() {
     const ws = new WebSocket(`${wsUrl}/alarm`);
 
     ws.onmessage = function (message) {
+      console.log(message.data)
       const alarm = JSON.parse(message.data);
-      if (!leafRooms.some(r => r.id === alarm.id)) {
-        return;
+
+      let newAlarms = [...alarms];
+
+      if (newAlarms.some(a => a.id == alarm.id)) {
+        let temp = newAlarms.find(a => a.id == alarm.id);
+        if (temp.type == 'YELLOW' && alarm.type == 'RED') {
+          let other = newAlarms.filter(a => a.id != alarm.id);
+          newAlarms = [...other, alarm];
+        }
+        if (temp.type == 'RED' && alarm.type == 'police') {
+          let other = newAlarms.filter(a => a.id != alarm.id);
+          newAlarms = [...other, alarm];
+        }
+        if (temp.type == 'security' && alarm.type == 'YELLOW') {
+          let other = newAlarms.filter(a => a.id != alarm.id);
+          newAlarms = [...other, alarm];
+        }
+      } else {
+        newAlarms = [...newAlarms, alarm];
       }
-      if (alarms.some(a => a.id == alarm.id)) {
-        return;
-      }
-      setAlarms(prev => [...prev, alarm]);
+
+      setAlarms(newAlarms);
     }
 
     return () => {

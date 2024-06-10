@@ -12,8 +12,6 @@ public class WorkRequest {
     public WorkRequest(Long roomId, String type) {
         this.roomId = roomId;
         this.type = type;
-        this.success = false;
-        this.isProcessed = false;
     }
 
     public Long getRoomId() {
