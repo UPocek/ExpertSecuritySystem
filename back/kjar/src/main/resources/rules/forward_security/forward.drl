@@ -9,8 +9,11 @@ import com.ftn.sbnz.model.events.ContinuousSensorEvent;
 import com.ftn.sbnz.model.events.DiscretSensorEvent;
 import com.ftn.sbnz.ws.SocketHandler;
 import com.ftn.sbnz.dtos.MessageDTO;
+import com.ftn.sbnz.repository.ISecurityRepository;
 
 import function com.ftn.sbnz.ws.SocketHandler.sendMessage;
+
+global ISecurityRepository securityRepository;
 
 rule "Activate camera if motion is detected and camera is present"
 agenda-group "security_forward"
@@ -67,6 +70,10 @@ then
                         String.format("Security notified for room %d", $room.id));
     sendMessage(message);
     modify($security){notifyOnCaution($room.id)};
+    Security s = securityRepository.findById($security.id).get();
+    s.setCurrentRoomId($room.id);
+    securityRepository.save(s);
+    securityRepository.flush();
     System.out.println("================================================");
     System.out.println("RULE NAME: Always notify security if camera is not present");
     System.out.println("Room with id: " + $room.id + " doesn't have a camera.");
@@ -82,12 +89,16 @@ when
     $event: DiscretSensorEvent(type == "motion")
     not(Camera(room.id == $event.roomId))
     not(Security(currentRoomId == $event.roomId))
-    $security: Security(currentRoomId != $event.roomId)
+    $security: Security()
 then
     MessageDTO message = new MessageDTO($event.roomId, "security",
                         String.format("Security notified for room %d", $event.roomId));
     sendMessage(message);
     modify($security){notifyOnCaution($event.roomId)};
+    Security s = securityRepository.findById($security.id).get();
+    s.setCurrentRoomId($event.roomId);
+    securityRepository.save(s);
+    securityRepository.flush();
     System.out.println("================================================");
     System.out.println("RULE NAME: Notify security if motion is detected and camera is not present");
     System.out.println("Room with id: " + $event.roomId + " doesn't have a camera.");
@@ -103,17 +114,21 @@ when
     $event: ContinuousSensorEvent(type in ("sound", "smoke"), level in (Level.MEDIUM, Level.HIGH))
     not(Camera(room.id == $event.roomId))
     not(Security(currentRoomId == $event.roomId))
-    $security: Security(currentRoomId != $event.roomId)
+    $security: Security()
 then
     MessageDTO message = new MessageDTO($event.roomId, "security",
                         String.format("Security notified for room %d", $event.roomId));
     sendMessage(message);
     modify($security){notifyOnCaution($event.roomId)};
+    Security s = securityRepository.findById($security.id).get();
+    s.setCurrentRoomId($event.roomId);
+    securityRepository.save(s);
+    securityRepository.flush();
     System.out.println("================================================");
     System.out.println("RULE NAME: Notify security if sound or smoke is detected and camera is not present");
     System.out.println("Room with id: " + $event.roomId + " doesn't have a camera.");
     System.out.println("There is no other security in room with id: " + $event.roomId);
-    System.out.println($event.type + " detected at level " + $event.level + " in room id: " + $event.roomId + ", security notified and moved to this room.");
+    System.out.println($event.type + " detected at level " + $event.level + " in room id: " + $event.roomId + ", security:"+$security.id+" notified and moved to this room.");
     System.out.println("================================================");
     delete($event);
 end;
@@ -262,9 +277,9 @@ end;
 rule "Set yellow alarm if security finds unknown person"
 agenda-group "security_forward"
 when
-    $security: Security(currentRoomId != null)
     $event1: DiscretSensorEvent(type == "securityFaceRecognition")
     $event2: DiscretSensorEvent(type == "securityFaceRecognitionFalse", roomId == $event1.roomId)
+    $security: Security(currentRoomId == $event1.roomId)
     $room: Room(id == $event1.roomId)
 then
     MessageDTO message = new MessageDTO($room.id, "YELLOW",
@@ -286,9 +301,9 @@ end;
 rule "Security finds known person"
 agenda-group "security_forward"
 when
-    $security: Security(currentRoomId != null)
     $event1: DiscretSensorEvent(type == "securityFaceRecognition")
     $event2: DiscretSensorEvent(type == "securityFaceRecognitionTrue", roomId == $event1.roomId)
+    $security: Security(currentRoomId == $event1.roomId)
     $room: Room(id == $event1.roomId)
 then
     System.out.println("================================================");
@@ -312,6 +327,10 @@ then
                         String.format("Security notified for room %d", $room.id));
     sendMessage(message);
     modify($security){notifyOnCaution($room.id)};
+    Security s = securityRepository.findById($security.id).get();
+    s.setCurrentRoomId($room.id);
+    securityRepository.save(s);
+    securityRepository.flush();
     System.out.println("================================================");
     System.out.println("RULE NAME: Notify security team");
     System.out.println("Security team notificating.");

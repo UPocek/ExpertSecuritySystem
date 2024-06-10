@@ -40,8 +40,15 @@ export default function ManageSensors({ building, leafRooms, sensors, setSensors
                     toast.info(`Sensor ${sensor['type']} with id ${sensor['id']} fired successfully`);
                 })
                 .catch(err => console.log(err))
-        } else if (sensor['type'] == 'camera' || sensor['type'] == 'security') {
+        } else if (sensor['type'] == 'camera') {
             axios.put(`${baseUrl}/api/sensor/camera_reading?type=${value}&sensorId=${sensor['id']}`)
+                .then(response => {
+                    console.log(response.data)
+                    toast.info(`Sensor ${sensor['type']} with id ${sensor['id']} fired successfully`);
+                })
+                .catch(err => console.log(err))
+        } else if (sensor['type'] == 'security') {
+            axios.put(`${baseUrl}/api/sensor/security_reading?type=${value}&sensorId=${sensor['id']}`)
                 .then(response => {
                     console.log(response.data)
                     toast.info(`Sensor ${sensor['type']} with id ${sensor['id']} fired successfully`);
@@ -58,7 +65,12 @@ export default function ManageSensors({ building, leafRooms, sensors, setSensors
     }
 
     function getRoomNameByRoomId(id) {
-        return leafRooms.find(room => room.id == id)['name']
+        try {
+            return leafRooms.find(room => room.id == id)['name']
+        } catch {
+            return ''
+        }
+
     }
 
     return (

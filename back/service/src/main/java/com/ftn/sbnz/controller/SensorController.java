@@ -101,8 +101,8 @@ public class SensorController {
 	}
 
 	@PutMapping("/security_reading")
-	public void securityReading(@RequestParam String type, @RequestParam Long sensorId, @RequestParam Long roomId) {
-
+	public void securityReading(@RequestParam String type, @RequestParam Long sensorId) {
+		sensorService.securitySensorReading(type, sensorId);
 		log.debug("Added new camera reading for sensor with id: " + sensorId);
 
 	}

@@ -24,23 +24,27 @@ export default function Home() {
       console.log(message.data)
       const alarm = JSON.parse(message.data);
 
-      if (alarms.some(a => a.id == alarm.id)) {
-        let temp = alarms.find(a => a.id == alarm.id);
+      let newAlarms = [...alarms];
+
+      if (newAlarms.some(a => a.id == alarm.id)) {
+        let temp = newAlarms.find(a => a.id == alarm.id);
         if (temp.type == 'YELLOW' && alarm.type == 'RED') {
-          let other = alarms.filter(a => a.id != alarm.id);
-          setAlarms([...other, alarm]);
+          let other = newAlarms.filter(a => a.id != alarm.id);
+          newAlarms = [...other, alarm];
         }
         if (temp.type == 'RED' && alarm.type == 'police') {
-          let other = alarms.filter(a => a.id != alarm.id);
-          setAlarms([...other, alarm]);
+          let other = newAlarms.filter(a => a.id != alarm.id);
+          newAlarms = [...other, alarm];
         }
         if (temp.type == 'security' && alarm.type == 'YELLOW') {
-          let other = alarms.filter(a => a.id != alarm.id);
-          setAlarms([...other, alarm]);
+          let other = newAlarms.filter(a => a.id != alarm.id);
+          newAlarms = [...other, alarm];
         }
-        return;
+      } else {
+        newAlarms = [...newAlarms, alarm];
       }
-      setAlarms(prev => [...prev, alarm]);
+
+      setAlarms(newAlarms);
     }
 
     return () => {

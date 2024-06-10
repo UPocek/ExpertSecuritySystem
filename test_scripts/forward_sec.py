@@ -47,8 +47,8 @@ def send_camera_reading(type, sensor_id):
 security_sensor_ids = [1,2]
 leaf_room_ids = [3,4,5]
 security_types = ['securityDetect','securityFaceRecognitionFalse','securityFaceRecognitionTrue']
-def send_security_reading(type,sensor_id,room_id):
-    response = requests.put(f'{SECURITY_READING_ENDPOINT}type={type}&sensorId={sensor_id}&roomId={room_id}', headers=headers)
+def send_security_reading(type,sensor_id):
+    response = requests.put(f'{SECURITY_READING_ENDPOINT}type={type}&sensorId={sensor_id}', headers=headers)
     if response.status_code == 200:
         print("Event sent successfully:")
     else:
@@ -78,12 +78,12 @@ if __name__ == "__main__":
     # send_camera_reading(type='detectTempCold', sensor_id=2)
 
     # # Scenario4 Execution
-    # send_disc_reading(sensor_id=3)
+    # send_cont_reading(sensor_id=4, value=8)
     # time.sleep(5)
-    # send_security_reading(type='securityDetect', sensor_id=2, room_id=5)
+    # send_security_reading('securityDetect',1)
     # time.sleep(5)
-    # send_security_reading(type='securityFaceRecognitionFalse', sensor_id=2, room_id=5)
-
+    # send_security_reading('securityFaceRecognitionFalse',1)
+    # send_cont_reading(sensor_id=4, value=8)
     # # Scenario4 Execution
     # send_disc_reading(sensor_id=3)
     # send_security_reading(type='securityDetect', sensor_id=2, room_id=4)

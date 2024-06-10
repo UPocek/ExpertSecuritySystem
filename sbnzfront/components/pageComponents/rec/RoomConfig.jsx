@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import Image from "next/image";
 
 export default function RoomConfig({ index, room, roomsConfigurations, setRoomsConfigurations }) {
 
@@ -30,6 +31,7 @@ export default function RoomConfig({ index, room, roomsConfigurations, setRoomsC
     }
 
     function updateExtraGearValue(newValue) {
+        console.log(newValue)
         const tempConfig = [...roomsConfigurations];
         tempConfig[index]['extraGearValue'] = newValue
         setRoomsConfigurations(tempConfig)
@@ -41,8 +43,14 @@ export default function RoomConfig({ index, room, roomsConfigurations, setRoomsC
             {(roomsConfigurations[index].workRequest == '' && roomsConfigurations[index].extraGearRequest == '' && roomsConfigurations[index].sensors.length > 0) &&
                 <div>
                     <p className="mb-4">For room <span className="underline">{room.name}</span>  we recommend these sensors:</p>
-                    <div className="flex flex-col gap-4">
-                        {roomsConfigurations[index].sensors.map((sensor) => <p key={JSON.stringify(sensor)}>{JSON.stringify(sensor)}</p>)}
+                    <div className="flex gap-4">
+                        {roomsConfigurations[index].sensors.map((sensor, index) =>
+                            <div key={index} className="flex flex-col gap-2 p-4 shadow-lg text-center items-center">
+                                <Image src={`/images/${sensor['type']}.png`} width={40} height={40} alt={sensor['type']} />
+                                <p className="text-sm text-muted-foreground">{sensor['type'].replace("_", " ")}</p>
+                                {sensor['power'] == null ? <p>Action required</p> : <p>{`${sensor['quantity']} needed`}</p>}
+
+                            </div>)}
                     </div>
                 </div>
             }
@@ -106,7 +114,7 @@ export default function RoomConfig({ index, room, roomsConfigurations, setRoomsC
             }
             {roomsConfigurations[index].workRequest == 'dedicated_server_for_memory' &&
                 <div>
-                    <p className="text-xl mb-6">{room.name}: Do you have the space for extra memory storage <span className="text-sm text-muted-foreground">(without setup will work with limited backups)</span>?</p>
+                    <p className="text-xl mb-6">{room.name}: Do you have the space for extra dedicated memory storage <span className="text-sm text-muted-foreground">(without setup will work with limited backups)</span>?</p>
                     <RadioGroup defaultValue={roomsConfigurations[index].workValue}
                         onValueChange={updateWorkRequestValue} >
                         <div className="flex items-center space-x-2">
@@ -122,7 +130,7 @@ export default function RoomConfig({ index, room, roomsConfigurations, setRoomsC
             }
             {roomsConfigurations[index].extraGearRequest == 'extra_battery' &&
                 <div>
-                    <p className="text-xl mb-6">{room.name}: Can you affort axtra batteries in this room <span className="text-sm text-muted-foreground">(safty)</span>?</p>
+                    <p className="text-xl mb-6">{room.name}: Can you afford extra batteries in this room <span className="text-sm text-muted-foreground">(safty)</span>?</p>
                     <RadioGroup defaultValue={roomsConfigurations[index].extraGearValue}
                         onValueChange={updateExtraGearValue} >
                         <div className="flex items-center space-x-2">
@@ -138,7 +146,7 @@ export default function RoomConfig({ index, room, roomsConfigurations, setRoomsC
             }
             {roomsConfigurations[index].extraGearRequest == 'service_monitoring' &&
                 <div>
-                    <p className="text-xl mb-6">{room.name}: Can you provide service monitoring <span className="text-sm text-muted-foreground">(safty)</span>?</p>
+                    <p className="text-xl mb-6">{room.name}: Do you want us to provide service monitoring <span className="text-sm text-muted-foreground">(safty)</span>?</p>
                     <RadioGroup defaultValue={roomsConfigurations[index].extraGearValue}
                         onValueChange={updateExtraGearValue} >
                         <div className="flex items-center space-x-2">

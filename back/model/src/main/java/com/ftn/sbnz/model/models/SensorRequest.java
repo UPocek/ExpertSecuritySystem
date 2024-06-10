@@ -20,6 +20,11 @@ public class SensorRequest {
         this.power = "basic";
     }
 
+    public SensorRequest(Long roomId, String type) {
+        this.roomId = roomId;
+        this.type = type;
+    }
+
     public Long getRoomId() {
         return roomId;
     }

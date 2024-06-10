@@ -76,7 +76,7 @@ public class RoomController {
     }
 
     @PostMapping("/config/requests")
-    public List<RoomConfigResponseDTO> addWorkResponse(@RequestBody RoomConfigRequestsDTO responses) {
+    public List<RoomConfigResponseDTO> addResponses(@RequestBody RoomConfigRequestsDTO responses) {
         return roomService.addResponses(responses);
     }
 }

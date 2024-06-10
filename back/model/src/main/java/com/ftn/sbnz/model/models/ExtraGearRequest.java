@@ -3,6 +3,8 @@ package com.ftn.sbnz.model.models;
 public class ExtraGearRequest {
     public Long roomId;
     public String type;
+    public boolean response;
+    public boolean isProcessed;
 
     public ExtraGearRequest() {
     }
@@ -26,6 +28,22 @@ public class ExtraGearRequest {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public boolean isProcessed() {
+        return isProcessed;
+    }
+
+    public void setProcessed(boolean isProcessed) {
+        this.isProcessed = isProcessed;
+    }
+
+    public boolean isResponse() {
+        return response;
+    }
+
+    public void setResponse(boolean response) {
+        this.response = response;
     }
 
 }

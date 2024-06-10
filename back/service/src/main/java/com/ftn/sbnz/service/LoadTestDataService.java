@@ -302,8 +302,8 @@ public class LoadTestDataService {
     public void createAggregationsForBottomLevelRooms() {
         List<Room> bottomLevelRooms = getBottomLevelRooms();
         Calendar calendar = Calendar.getInstance();
-        // calendar.add(Calendar.DAY_OF_YEAR, -3);
-        calendar.add(Calendar.MONTH, -4);
+        calendar.add(Calendar.DAY_OF_YEAR, -2);
+        // calendar.add(Calendar.MONTH, -4);
         Date oneWeekAgo = calendar.getTime();
 
         List<AggregationToStore> aggregationToStoreList = new ArrayList<>();
@@ -430,8 +430,8 @@ public class LoadTestDataService {
     public void createAggregationsForBottomLevelProducts() {
         List<Product> bottomLevelProducts = getBottomLevelProducts();
         Calendar calendar = Calendar.getInstance();
-        // calendar.add(Calendar.DAY_OF_YEAR, -3);
-        calendar.add(Calendar.MONTH, -4);
+        calendar.add(Calendar.DAY_OF_YEAR, -2);
+        // calendar.add(Calendar.MONTH, -4);
         Date oneWeekAgo = calendar.getTime();
 
         List<ProductAggregationToStore> aggregationToStoreList = new ArrayList<>();
