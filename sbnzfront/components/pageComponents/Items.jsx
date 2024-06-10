@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { baseUrl } from "@/pages/_app";
 import axios from "axios";
 import Image from "next/image";
+import { toast } from 'sonner';
 
 export default function Items({ roomId }) {
     const [items, setItems] = useState([]);
@@ -22,7 +23,7 @@ export default function Items({ roomId }) {
         const price = Math.floor(Math.random() * 42);
         axios.post(`${baseUrl}/api/product_detection?productGroup=${item.name}&act=take&customerId=${customerId}&price=${price}`)
             .then((res) => {
-                console.log(res.data);
+                toast.success(`${item.name} added to cart`)
             }).catch(err => console.log(err))
     }
 
@@ -31,7 +32,7 @@ export default function Items({ roomId }) {
         const price = Math.floor(Math.random() * 42);
         axios.post(`${baseUrl}/api/product_detection?productGroup=${item.name}&act=return&customerId=${customerId}&price=${price}`)
             .then((res) => {
-                console.log(res.data);
+                toast.info(`${item.name} returned to shelf`)
             }).catch(err => console.log(err))
     }
 
