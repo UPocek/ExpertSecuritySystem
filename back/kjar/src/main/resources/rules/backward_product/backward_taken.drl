@@ -20,6 +20,7 @@ no-loop
     $ad: AggregateProduct(act == "take",timeStamp after $startDate, timeStamp before $endDate, interval == $interval, isProcessed == false, $productGroup1: productGroup) 
     isContainedIn($productGroup1, $productGroup;)
   then
+  System.out.println("BBB");
     if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
       insert(new ProductReportResult($ad.getQuantity(),$startDate, $productGroup, $interval));
     } else {
@@ -36,6 +37,7 @@ no-loop
     $ad : AggregateProduct(act == "take",interval == $interval, timeStamp after $startDate , timeStamp before $endDate, isProcessed == false,$productGroup1:productGroup)
     isContainedIn($productGroup1, $productGroup;)
   then
+  System.out.println("ff");
     if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
       modify($dpcrr){ setValue($value + $ad.getQuantity()) };
     } else {
@@ -51,6 +53,7 @@ no-loop
     not(ProductReportResult(productGroup == $productGroup, startDate == $startDate, interval == $interval))
     $ad: AggregateProduct(act == "take",timeStamp after $startDate, timeStamp before $endDate, interval == $interval, isProcessed == false, productGroup == $productGroup) 
   then
+  System.out.println("ee");
     if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
       insert(new ProductReportResult($ad.getQuantity(),$startDate, $productGroup, $interval));
     } else {
@@ -66,6 +69,7 @@ no-loop
     $dpcrr: ProductReportResult(productGroup == $productGroup, startDate == $startDate, interval == $interval, $value:value)
     $ad : AggregateProduct(act == "take",interval == $interval, timeStamp after $startDate , timeStamp before $endDate, productGroup == $productGroup,isProcessed == false)
   then
+  System.out.println("www");
     modify($ad){ setProcessed(true); }
     if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
       modify($dpcrr){ setValue($value + $ad.getQuantity()) };
@@ -75,12 +79,13 @@ no-loop
 end
 
 rule "most sell report 1"
-agenda-group "productReportReturn"
+agenda-group "productReportTake"
 no-loop
   when
     $filter: ReportFilter(type == "most_sell",productGroup == null, $startDate:startDate,$endDate:endDate, $interval:interval)
     $l: Location($productGroup:item)
     not(ReportFilter(productGroup == $productGroup))
   then
+  System.out.println("qq");
     insert(new ReportFilter($startDate, $endDate, null, $productGroup, $interval, "most_sell"));
 end

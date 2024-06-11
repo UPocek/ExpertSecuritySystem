@@ -46,13 +46,16 @@ public class ProductService {
     }
 
     public List<ProductDTO> getAllProductsForRoom(Long roomId) {
-        return productRepository.findAllByplacedInId(roomId).stream().filter(p -> p.getIsContainedIn() != null)
+        return productRepository.findAllByplacedInId(roomId).stream()
+                .filter(p -> productRepository.findByIsContainedIn(p).isEmpty())
                 .map(p -> new ProductDTO(p.getId(), p.getName(), p.getPlacedIn().getId())).collect(Collectors.toList());
     }
 
     public List<ProductDTO> getAllProducts() {
         return productRepository.findAll().stream()
-                .map(p -> new ProductDTO(p.getId(), p.getName(), p.getPlacedIn().getId())).collect(Collectors.toList());
+                .map(p -> new ProductDTO(p.getId(), p.getName(),
+                        p.getPlacedIn() == null ? null : p.getPlacedIn().getId()))
+                .collect(Collectors.toList());
     }
 
 }

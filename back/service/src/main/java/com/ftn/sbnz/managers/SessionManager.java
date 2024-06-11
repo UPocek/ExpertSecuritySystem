@@ -184,6 +184,7 @@ public class SessionManager {
     }
 
     public KieSession getPeopleReportSession() {
+        disposeAllSessions();
         if (reportSessions.get("ReportSessionPeople") != null) {
             return reportSessions.get("ReportSessionPeople");
         }
@@ -192,7 +193,7 @@ public class SessionManager {
         var rooms = roomRepository.findAll();
         for (Room r : rooms) {
             if (r.getIsContainedIn() == null) {
-                reportSession.insert(new Location(r.getName(), r.getName()));
+                // reportSession.insert(new Location(r.getName(), r.getName()));
             } else {
                 reportSession
                         .insert(new Location(r.getName(), r.getIsContainedIn().getName()));
@@ -208,6 +209,7 @@ public class SessionManager {
     }
 
     public KieSession getProductReportSession() {
+        disposeAllSessions();
         if (reportSessions.get("ReportSessionProduct") != null) {
             return reportSessions.get("ReportSessionProduct");
         }
@@ -216,11 +218,11 @@ public class SessionManager {
         var products = productRepository.findAll();
         for (Product p : products) {
             if (p.getIsContainedIn() == null) {
-                reportSession.insert(new Location(p.getName(), p.getName()));
+                // reportSession.insert(new Location(p.getName(), p.getName()));
             } else {
-                reportSession
-                        .insert(new Location(p.getName(), p.getIsContainedIn().getName()));
+                reportSession.insert(new Location(p.getName(), p.getIsContainedIn().getName()));
             }
+
         }
 
         var aggregatedObjects = productAggregationsRepository.findAll();
@@ -229,6 +231,13 @@ public class SessionManager {
         }
 
         return reportSession;
+    }
+
+    public void disposeAllSessions() {
+        for (KieSession session : sessions.values()) {
+            session.dispose();
+        }
+        sessions.clear();
     }
 
     @Transactional

@@ -2,7 +2,6 @@ package com.ftn.sbnz.service;
 
 import org.drools.core.ClassObjectFilter;
 import org.kie.api.runtime.KieSession;
-import org.kie.api.time.SessionPseudoClock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -10,9 +9,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.ftn.sbnz.managers.SessionManager;
 import com.ftn.sbnz.model.events.PersonDetectionEvent;
-import com.ftn.sbnz.model.models.AggregatedDetection;
-import com.ftn.sbnz.model.models.Aggregation;
-import com.ftn.sbnz.model.models.Location;
 import com.ftn.sbnz.model.models.ReportFilter;
 import com.ftn.sbnz.model.models.Room;
 import com.ftn.sbnz.repository.IRoomRepository;
@@ -26,7 +22,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -196,7 +191,8 @@ public class PeopleDetectionService {
             List<Date[]> monthlyRanges = getMonthlyRanges(startDateParsed, endDateParsed);
 
             for (Date[] d : monthlyRanges) {
-                ReportFilter filter = new ReportFilter(d[0], d[1], null, location, 1440, "monthly");
+                System.out.println(d[0] + " " + d[1]);
+                ReportFilter filter = new ReportFilter(d[0], d[1], location, null, 1440, "monthly");
                 kieSession.insert(filter);
             }
             kieSession.getAgenda().getAgendaGroup("peopleReport").setFocus();
@@ -456,7 +452,7 @@ public class PeopleDetectionService {
                     day);
 
             for (Date[] d : dailyRanges) {
-                ReportFilter filter = new ReportFilter(d[0], d[1], location, null, "max_people_reccuring");
+                ReportFilter filter = new ReportFilter(d[0], d[1], location, null, 15, "max_people_reccuring");
                 kieSession.insert(filter);
             }
             kieSession.getAgenda().getAgendaGroup("peopleReport").setFocus();
@@ -491,7 +487,7 @@ public class PeopleDetectionService {
                     day);
 
             for (Date[] d : dailyRanges) {
-                ReportFilter filter = new ReportFilter(d[0], d[1], location, null, "max_people_reccuring");
+                ReportFilter filter = new ReportFilter(d[0], d[1], location, null, 15, "min_people_reccuring");
                 kieSession.insert(filter);
             }
             kieSession.getAgenda().getAgendaGroup("peopleReport").setFocus();
@@ -567,72 +563,6 @@ public class PeopleDetectionService {
 
         return dailyTimeRanges;
     }
-
-    // public void detectPerson(String location) {
-    // KieSession kieSession = sessionManager.getAggregateSession();
-    // PersonDetectionEvent event = new PersonDetectionEvent(location, 5);
-    // PersonDetectionEvent event1 = new PersonDetectionEvent(location, 5);
-    // PersonDetectionEvent event2 = new PersonDetectionEvent(location, 5);
-
-    // PersonDetectionEvent event3 = new PersonDetectionEvent(location, 5);
-    // PersonDetectionEvent event4 = new PersonDetectionEvent(location, 5);
-    // PersonDetectionEvent event5 = new PersonDetectionEvent(location, 5);
-
-    // PersonDetectionEvent event6 = new PersonDetectionEvent(location, 5);
-    // PersonDetectionEvent event7 = new PersonDetectionEvent(location, 5);
-    // PersonDetectionEvent event8 = new PersonDetectionEvent(location, 5);
-
-    // SessionPseudoClock clock = kieSession.getSessionClock();
-
-    // // 5 minutes
-    // kieSession.insert(event);
-    // kieSession.insert(event3);
-    // int n = kieSession.fireAllRules();
-    // System.out.println("Number of rules fired: " + n);
-
-    // // 10 minutes
-    // clock.advanceTime(5, TimeUnit.MINUTES);
-
-    // kieSession.insert(event1);
-
-    // n = kieSession.fireAllRules();
-    // System.out.println("Number of rules fired: " + n);
-    // // 15 minutes
-    // clock.advanceTime(5, TimeUnit.MINUTES);
-
-    // kieSession.insert(event2);
-    // n = kieSession.fireAllRules();
-    // System.out.println("Number of rules fired: " + n);
-
-    // // 20 minutes
-    // clock.advanceTime(5, TimeUnit.MINUTES);
-    // n = kieSession.fireAllRules();
-    // System.out.println("Number of rules fired: " + n);
-    // // 25 minutes
-    // clock.advanceTime(5, TimeUnit.MINUTES);
-    // n = kieSession.fireAllRules();
-    // System.out.println("Number of rules fired: " + n);
-    // // 30 minutes
-    // clock.advanceTime(5, TimeUnit.MINUTES);
-    // n = kieSession.fireAllRules();
-    // System.out.println("Number of rules fired: " + n);
-
-    // for (int i = 0; i < 282; i++) {
-    // clock.advanceTime(5, TimeUnit.MINUTES);
-    // n = kieSession.fireAllRules();
-    // System.out.println("Number of rules fired: " + n);
-    // }
-
-    // // kieSession.insert(event);
-    // // kieSession.insert(event1);
-    // // kieSession.insert(event2);
-
-    // System.out.println("All facts in session:");
-    // // for (Object fact : kieSession.getObjects()) {
-    // // System.out.println(fact);
-    // // }
-
-    // }
 
     public void insertDetection(String location, int numberOfPeople) {
         KieSession kieSession = sessionManager.getAggregatePeopleSession();

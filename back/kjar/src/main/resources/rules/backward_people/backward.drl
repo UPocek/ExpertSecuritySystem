@@ -77,7 +77,7 @@ no-loop
         insert(new PeopleReportResult($ad.getAggregation().getAverage(), $startDate, $location, $interval));
     }else if($filter.getType().equals("max_people_reccuring")){
      insert(new PeopleReportResult($ad.getAggregation().getMax(), $startDate, $location, $interval));
-    }else if($filter.getType().equals("averagmin_people_reccuringe_people_store")){
+    }else if($filter.getType().equals("min_people_reccuring")){
      insert(new PeopleReportResult($ad.getAggregation().getMin(), $startDate, $location, $interval));
     }
     else{
@@ -101,7 +101,7 @@ no-loop
       modify($dpcrr){setPeopleCount($peopleCount > $ad.getAggregation().getMax() 
             ? $peopleCount 
             : $ad.getAggregation().getMax())};
-    }else if($filter.getType().equals("averagmin_people_reccuringe_people_store")){
+    }else if($filter.getType().equals("min_people_reccuring")){
       modify($dpcrr){setPeopleCount($peopleCount < $ad.getAggregation().getMin() 
             ? $peopleCount 
             : $ad.getAggregation().getMin())};

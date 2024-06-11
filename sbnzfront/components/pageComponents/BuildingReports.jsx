@@ -13,6 +13,7 @@ import axios from "axios"
 import { baseUrl } from "@/pages/_app"
 import LineChart from "../universal/LineChart"
 import { toast } from "sonner"
+import Ranking from "./Ranking"
 
 export default function BuildingReports({ rooms }) {
 
@@ -45,6 +46,7 @@ export default function BuildingReports({ rooms }) {
 
         return `${dayOfWeek} ${month} ${day} ${hours}:${minutes}:${seconds} ${timeZone} ${year}`;
     }
+
     function getReport() {
 
         if (typeOfReport == '') {
@@ -70,7 +72,8 @@ export default function BuildingReports({ rooms }) {
                             datasets: [
                                 {
                                     data:
-                                        data.map(d => d.peopleCount)
+                                        data.map(d => d.peopleCount),
+                                    label: 'total_daily'
                                 }]
                         })
                 }).catch(err => console.log(err))
@@ -93,7 +96,8 @@ export default function BuildingReports({ rooms }) {
                             datasets: [
                                 {
                                     data:
-                                        data.map(d => d.peopleCount)
+                                        data.map(d => d.peopleCount),
+                                    label: 'total_weekly'
                                 }]
                         })
                 })
@@ -116,20 +120,14 @@ export default function BuildingReports({ rooms }) {
                             datasets: [
                                 {
                                     data:
-                                        data.map(d => d.peopleCount)
+                                        data.map(d => d.peopleCount),
+                                    label: 'total_monthly'
                                 }]
                         })
                 })
                 .catch(err => console.log(err))
         } else if (typeOfReport == 'part_of_day') {
-            axios.get(`${baseUrl}/api/people_detection/part_of_day`)
-                .then(res => {
-                    // TODO
-                    console.log(res.data);
-                })
-                .catch(err => console.log(err))
-        } else if (typeOfReport == 'ranking') {
-            axios.get(`${baseUrl}/api/people_detection/ranking`)
+            axios.get(`${baseUrl}/api/people_detection/part_of_day_trend?location=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}&partOfDay=${partOfDay}`)
                 .then(res => {
                     console.log(res.data);
                     const data = res.data.toSorted((a, b) => new Date(a.startDate) - new Date(b.startDate));
@@ -146,9 +144,19 @@ export default function BuildingReports({ rooms }) {
                             datasets: [
                                 {
                                     data:
-                                        data.map(d => d.peopleCount)
+                                        data.map(d => d.peopleCount),
+                                    label: 'part of day trend'
                                 }]
                         })
+                })
+                .catch(err => console.log(err))
+        } else if (typeOfReport == 'ranking') {
+            axios.get(`${baseUrl}/api/people_detection/ranking`)
+                .then(res => {
+                    console.log(res.data);
+                    const data = res.data.toSorted((a, b) => a.peopleCount - b.peopleCount);
+                    setChartData(
+                        data)
                 })
                 .catch(err => console.log(err))
         } else if (typeOfReport == 'average_person_in_store') {
@@ -170,27 +178,82 @@ export default function BuildingReports({ rooms }) {
                             datasets: [
                                 {
                                     data:
-                                        data.map(d => d.peopleCount)
+                                        data.map(d => d.peopleCount),
+                                    label: 'average people in store'
                                 }]
                         })
                 })
                 .catch(err => console.log(err))
         } else if (typeOfReport == 'average_people_reccuring') {
-            axios.get(`${baseUrl}/api/people_detection/average_people_reccuring`)
+            axios.get(`${baseUrl}/api/people_detection/average_people_reccuring?location=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}&partOfDay=${partOfDay}&dayOfWeek=${dayOfWeek}`)
                 .then(res => {
                     console.log(res.data);
+                    const data = res.data.toSorted((a, b) => new Date(a.startDate) - new Date(b.startDate));
+                    setChartData(
+                        {
+                            labels: data.map(d => {
+                                let date = new Date(d['startDate']);
+                                return date.toLocaleString('en-GB', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                })
+                            }),
+                            datasets: [
+                                {
+                                    data:
+                                        data.map(d => d.peopleCount),
+                                    label: 'average people reccuring'
+                                }]
+                        })
                 })
                 .catch(err => console.log(err))
         } else if (typeOfReport == 'max_people_reccuring') {
-            axios.get(`${baseUrl}/api/people_detection/max_people_reccuring`)
+            axios.get(`${baseUrl}/api/people_detection/max_people_reccuring?location=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}&partOfDay=${partOfDay}&dayOfWeek=${dayOfWeek}`)
                 .then(res => {
                     console.log(res.data);
+                    const data = res.data.toSorted((a, b) => new Date(a.startDate) - new Date(b.startDate));
+                    setChartData(
+                        {
+                            labels: data.map(d => {
+                                let date = new Date(d['startDate']);
+                                return date.toLocaleString('en-GB', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                })
+                            }),
+                            datasets: [
+                                {
+                                    data:
+                                        data.map(d => d.peopleCount),
+                                    label: 'max people reccuring'
+                                }]
+                        })
                 })
                 .catch(err => console.log(err))
         } else if (typeOfReport == 'min_people_reccuring') {
-            axios.get(`${baseUrl}/api/people_detection/min_people_reccuring`)
+            axios.get(`${baseUrl}/api/people_detection/min_people_reccuring?location=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}&partOfDay=${partOfDay}&dayOfWeek=${dayOfWeek}`)
                 .then(res => {
                     console.log(res.data);
+                    const data = res.data.toSorted((a, b) => new Date(a.startDate) - new Date(b.startDate));
+                    setChartData(
+                        {
+                            labels: data.map(d => {
+                                let date = new Date(d['startDate']);
+                                return date.toLocaleString('en-GB', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                })
+                            }),
+                            datasets: [
+                                {
+                                    data:
+                                        data.map(d => d.peopleCount),
+                                    label: 'min people reccuring'
+                                }]
+                        })
                 })
                 .catch(err => console.log(err))
         }
@@ -270,9 +333,11 @@ export default function BuildingReports({ rooms }) {
                 <Button className="w-40" onClick={getReport}>Generate report</Button>
             </div>
 
-            <div className="mt-10">
-                <LineChart data={chartData} />
-            </div>
+            {typeOfReport == 'ranking' ?
+                <Ranking data={chartData} />
+                : <div className="mt-10">
+                    <LineChart data={chartData} />
+                </div>}
 
         </div>)
 }

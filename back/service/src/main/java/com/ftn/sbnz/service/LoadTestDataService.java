@@ -62,11 +62,18 @@ public class LoadTestDataService {
     public void createProducts() {
         List<Room> bottomLevelRooms = getBottomLevelRooms();
 
-        Product dairySection = new Product("Dairy");
-        Product fruitsSection = new Product("Fruits");
-        Product vegetablesSection = new Product("Vegetables");
-        Product meatSection = new Product("Meat");
-        Product grainsSection = new Product("Grains");
+        Product fridgeSection = new Product("Fridge");
+        productRepository.save(fridgeSection);
+        productRepository.flush();
+        Product shelfSection = new Product("Shelf");
+        productRepository.save(shelfSection);
+        productRepository.flush();
+
+        Product dairySection = new Product("Dairy", fridgeSection);
+        Product fruitsSection = new Product("Fruits", shelfSection);
+        Product vegetablesSection = new Product("Vegetables", shelfSection);
+        Product meatSection = new Product("Meat", fridgeSection);
+        Product grainsSection = new Product("Grains", fridgeSection);
 
         List<Product> dairySectionProducts = new ArrayList<>();
         List<Product> fruitsSectionProducts = new ArrayList<>();
@@ -196,67 +203,67 @@ public class LoadTestDataService {
         // level3Room8 = roomRepository.save(level3Room8);
 
         // // Create level 4 rooms
-        // Room level4Room1 = new Room("Level 4 Room 1",root);
+        // Room level4Room1 = new Room("Level 4 Room 1", root);
         // level4Room1.setIsContainedIn(level3Room1);
         // level4Room1 = roomRepository.save(level4Room1);
 
-        // Room level4Room2 = new Room("Level 4 Room 2",root);
+        // Room level4Room2 = new Room("Level 4 Room 2", root);
         // level4Room2.setIsContainedIn(level3Room1);
         // level4Room2 = roomRepository.save(level4Room2);
 
-        // Room level4Room3 = new Room("Level 4 Room 3",root);
+        // Room level4Room3 = new Room("Level 4 Room 3", root);
         // level4Room3.setIsContainedIn(level3Room2);
         // level4Room3 = roomRepository.save(level4Room3);
 
-        // Room level4Room4 = new Room("Level 4 Room 4",root);
+        // Room level4Room4 = new Room("Level 4 Room 4", root);
         // level4Room4.setIsContainedIn(level3Room2);
         // level4Room4 = roomRepository.save(level4Room4);
 
-        // Room level4Room5 = new Room("Level 4 Room 5",root);
+        // Room level4Room5 = new Room("Level 4 Room 5", root);
         // level4Room5.setIsContainedIn(level3Room3);
         // level4Room5 = roomRepository.save(level4Room5);
 
-        // Room level4Room6 = new Room("Level 4 Room 6",root);
+        // Room level4Room6 = new Room("Level 4 Room 6", root);
         // level4Room6.setIsContainedIn(level3Room3);
         // level4Room6 = roomRepository.save(level4Room6);
 
-        // Room level4Room7 = new Room("Level 4 Room 7",root);
+        // Room level4Room7 = new Room("Level 4 Room 7", root);
         // level4Room7.setIsContainedIn(level3Room4);
         // level4Room7 = roomRepository.save(level4Room7);
 
-        // Room level4Room8 = new Room("Level 4 Room 8",root);
+        // Room level4Room8 = new Room("Level 4 Room 8", root);
         // level4Room8.setIsContainedIn(level3Room4);
         // level4Room8 = roomRepository.save(level4Room8);
 
-        // Room level4Room9 = new Room("Level 4 Room 9",root);
+        // Room level4Room9 = new Room("Level 4 Room 9", root);
         // level4Room9.setIsContainedIn(level3Room5);
         // level4Room9 = roomRepository.save(level4Room9);
 
-        // Room level4Room10 = new Room("Level 4 Room 10",root);
+        // Room level4Room10 = new Room("Level 4 Room 10", root);
         // level4Room10.setIsContainedIn(level3Room5);
         // level4Room10 = roomRepository.save(level4Room10);
 
-        // Room level4Room11 = new Room("Level 4 Room 11",root);
+        // Room level4Room11 = new Room("Level 4 Room 11", root);
         // level4Room11.setIsContainedIn(level3Room6);
         // level4Room11 = roomRepository.save(level4Room11);
 
-        // Room level4Room12 = new Room("Level 4 Room 12",root);
+        // Room level4Room12 = new Room("Level 4 Room 12", root);
         // level4Room12.setIsContainedIn(level3Room6);
         // level4Room12 = roomRepository.save(level4Room12);
 
-        // Room level4Room13 = new Room("Level 4 Room 13",root);
+        // Room level4Room13 = new Room("Level 4 Room 13", root);
         // level4Room13.setIsContainedIn(level3Room7);
         // level4Room13 = roomRepository.save(level4Room13);
 
-        // Room level4Room14 = new Room("Level 4 Room 14",root);
+        // Room level4Room14 = new Room("Level 4 Room 14", root);
         // level4Room14.setIsContainedIn(level3Room7);
         // level4Room14 = roomRepository.save(level4Room14);
 
-        // Room level4Room15 = new Room("Level 4 Room 15",root);
+        // Room level4Room15 = new Room("Level 4 Room 15", root);
         // level4Room15.setIsContainedIn(level3Room8);
         // level4Room15 = roomRepository.save(level4Room15);
 
-        // Room level4Room16 = new Room("Level 4 Room 16",root);
+        // Room level4Room16 = new Room("Level 4 Room 16", root);
         // level4Room16.setIsContainedIn(level3Room8);
         // level4Room16 = roomRepository.save(level4Room16);
 
@@ -302,8 +309,8 @@ public class LoadTestDataService {
     public void createAggregationsForBottomLevelRooms() {
         List<Room> bottomLevelRooms = getBottomLevelRooms();
         Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_YEAR, -2);
-        // calendar.add(Calendar.MONTH, -4);
+        // calendar.add(Calendar.DAY_OF_YEAR, -2);
+        calendar.add(Calendar.MONTH, -4);
         Date oneWeekAgo = calendar.getTime();
 
         List<AggregationToStore> aggregationToStoreList = new ArrayList<>();
@@ -322,7 +329,7 @@ public class LoadTestDataService {
                     fourEightyMinuteAggregations, 1440);
 
             // aggregationToStoreList.addAll(convertToAggregationToStore(fiveMinuteDetections));
-            // aggregationToStoreList.addAll(convertToAggregationToStore(fifteenMinuteAggregations));
+            aggregationToStoreList.addAll(convertToAggregationToStore(fifteenMinuteAggregations));
             // aggregationToStoreList.addAll(convertToAggregationToStore(thirtyMinuteAggregations));
             // aggregationToStoreList.addAll(convertToAggregationToStore(sixtyMinuteAggregations));
             // aggregationToStoreList.addAll(convertToAggregationToStore(oneTwentyMinuteAggregations));
@@ -430,8 +437,8 @@ public class LoadTestDataService {
     public void createAggregationsForBottomLevelProducts() {
         List<Product> bottomLevelProducts = getBottomLevelProducts();
         Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_YEAR, -2);
-        // calendar.add(Calendar.MONTH, -4);
+        // calendar.add(Calendar.DAY_OF_YEAR, -2);
+        calendar.add(Calendar.MONTH, -4);
         Date oneWeekAgo = calendar.getTime();
 
         List<ProductAggregationToStore> aggregationToStoreList = new ArrayList<>();

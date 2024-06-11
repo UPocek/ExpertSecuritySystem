@@ -4,7 +4,7 @@ import time
 import random
 
 # Define the base URL of your REST API
-BASE_URL = "http://localhost:8080/api"
+BASE_URL = "http://localhost:8080/api/people_detection"
 
 # Sample data to be sent to the endpoints
 take_event = {
@@ -29,22 +29,10 @@ headers = {
 }
 
 # Function to send a POST request
-def send_post_request(data):
-    url = f"{BASE_URL}/product_detection?productGroup=Bread&act={data}&customerId=1&price=333"
-    response = requests.post(url, headers=headers)
+def total_daily():
+    url = f"{BASE_URL}/total_daily?location=Level 1 Room 1&startDate=Thu February 30 12:30:00 GMT 2024&endDate=Thu Jun 01 12:30:00 GMT 2024"
+    response = requests.get(url, headers=headers)
     return response
 
 for i in range(288):
-    wait = random.choice([13,16])
-    # Trigger take event
-    response_take = send_post_request("take")
-    print(f"Take Event Response: {response_take.status_code} - {response_take.text}")
-
-    # Wait for some time before triggering the return event to simulate real-time events
-    time.sleep(wait)
-
-    # Trigger return event
-    response_return = send_post_request("return")
-    print(f"Return Event Response: {response_return.status_code} - {response_return.text}")
-
-    # Further steps can be added to trigger other events and test different Drools rules.
+   total_daily()

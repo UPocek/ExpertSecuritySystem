@@ -5,20 +5,19 @@ import com.ftn.sbnz.model.models.AggregateProduct;
 import com.ftn.sbnz.model.models.Location;
 import com.ftn.sbnz.model.models.ProductReportResult;
 
-query isContainedIn2( String x, String y )
+query isProductOf( String x, String y )
   Location( x, y; )
   or
-  ( Location( z, y; ) and isContainedIn2( x, z; ) )
+  ( Location( z, y; ) and isProductOf( x, z; ) )
 end
 
 rule "product1 report 1"
 agenda-group "productReportReturn"
-no-loop
   when
     $filter: ReportFilter($productGroup:productGroup,$startDate:startDate,$endDate:endDate, $interval:interval)
     not(ProductReportResult(productGroup == $productGroup, startDate == $startDate, interval == $interval))
     $ad: AggregateProduct(act == "return",timeStamp after $startDate, timeStamp before $endDate, interval == $interval, isProcessed == false, $productGroup1: productGroup) 
-    isContainedIn2($productGroup1, $productGroup;)
+    isProductOf($productGroup1, $productGroup;)
   then
     modify($ad){ setProcessed(true); }
     if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
@@ -35,7 +34,7 @@ no-loop
     $filter: ReportFilter( $productGroup:productGroup,$startDate:startDate,$endDate:endDate, $interval:interval)
     $dpcrr: ProductReportResult(productGroup == $productGroup, startDate == $startDate, interval == $interval, $value:value)
     $ad : AggregateProduct(act == "return",interval == $interval, timeStamp after $startDate , timeStamp before $endDate, isProcessed == false,$productGroup1:productGroup)
-    isContainedIn2($productGroup1, $productGroup;)
+    isProductOf($productGroup1, $productGroup;)
   then
     if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
       modify($dpcrr){ setValue($value + $ad.getQuantity()) };

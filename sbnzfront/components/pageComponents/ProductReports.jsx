@@ -1,5 +1,5 @@
 import { addDays } from "date-fns"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { DatePickerWithRange } from "../universal/DatePickerRange"
 import {
     Select,
@@ -13,9 +13,10 @@ import axios from "axios"
 import { baseUrl } from "@/pages/_app"
 import LineChart from "../universal/LineChart"
 import { toast } from "sonner"
+import RankingProduct from "./RankingProduct"
 
 export default function ProductReports({ products }) {
-
+    console.log(products)
     const [typeOfReport, setTypeOfReport] = useState('');
 
     const [date, setDate] = useState({
@@ -52,30 +53,8 @@ export default function ProductReports({ products }) {
             return;
         }
 
-        if (typeOfReport == 'total_daily') {
-            axios.get(`${baseUrl}/api/product_detection/total_daily?product=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}`)
-                .then(res => {
-                    console.log(res.data);
-                    const data = res.data.toSorted((a, b) => new Date(a.startDate) - new Date(b.startDate));
-                    setChartData(
-                        {
-                            labels: data.map(d => {
-                                let date = new Date(d['startDate']);
-                                return date.toLocaleString('en-GB', {
-                                    day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric',
-                                })
-                            }),
-                            datasets: [
-                                {
-                                    data:
-                                        data.map(d => d.value)
-                                }]
-                        })
-                }).catch(err => console.log(err))
-        } else if (typeOfReport == 'total_weekly') {
-            axios.get(`${baseUrl}/api/product_detection/total_weekly?product=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}`)
+        if (typeOfReport == 'selling_trend') {
+            axios.get(`${baseUrl}/api/product_detection/selling_trend?product=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}`)
                 .then(res => {
                     console.log(res.data);
                     const data = res.data.toSorted((a, b) => new Date(a.startDate) - new Date(b.startDate));
@@ -93,19 +72,21 @@ export default function ProductReports({ products }) {
                             datasets: [
                                 {
                                     data:
-                                        data.map(d => d.value)
+                                        data.map(d => d.value),
+                                    label: 'selling trend'
                                 }]
                         })
                 })
                 .catch(err => console.log(err))
-        } else if (typeOfReport == 'total_monthly') {
-            axios.get(`${baseUrl}/api/product_detection/total_monthly?product=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}`)
+        } else if (typeOfReport == 'take_return_rate') {
+            axios.get(`${baseUrl}/api/product_detection/take_return_rate?product=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}`)
                 .then(res => {
                     console.log(res.data);
-                    const data = res.data.toSorted((a, b) => new Date(a.startDate) - new Date(b.startDate));
+                    const dataReturned = res.data['returned'].toSorted((a, b) => new Date(a.startDate) - new Date(b.startDate));
+                    const dataTaken = res.data['taken'].toSorted((a, b) => new Date(a.startDate) - new Date(b.startDate));
                     setChartData(
                         {
-                            labels: data.map(d => {
+                            labels: dataTaken.map(d => {
                                 let date = new Date(d['startDate']);
                                 return date.toLocaleString('en-GB', {
                                     day: 'numeric',
@@ -116,7 +97,12 @@ export default function ProductReports({ products }) {
                             datasets: [
                                 {
                                     data:
-                                        data.map(d => d.value)
+                                        dataReturned.map(d => d.value),
+                                    label: 'returned',
+                                }, {
+                                    data:
+                                        dataTaken.map(d => d.value),
+                                    label: 'taken',
                                 }]
                         })
                 })
@@ -124,11 +110,14 @@ export default function ProductReports({ products }) {
         } else if (typeOfReport == 'most_return') {
             axios.get(`${baseUrl}/api/product_detection/most_return`)
                 .then(res => {
-                    console.log(res.data);
+                    console.log("AAA")
+                    console.log(res.data)
+                    const data = res.data.toSorted((a, b) => a.value - b.value);
+                    setChartData(data)
                 })
                 .catch(err => console.log(err))
-        } else if (typeOfReport == 'ranking') {
-            axios.get(`${baseUrl}/api/product_detection/ranking`)
+        } else if (typeOfReport == 'money_return_loss') {
+            axios.get(`${baseUrl}/api/product_detection/money_return_loss?product=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}`)
                 .then(res => {
                     console.log(res.data);
                     const data = res.data.toSorted((a, b) => new Date(a.startDate) - new Date(b.startDate));
@@ -145,51 +134,10 @@ export default function ProductReports({ products }) {
                             datasets: [
                                 {
                                     data:
-                                        data.map(d => d.value)
+                                        data.map(d => d.value),
+                                    label: 'money return loss'
                                 }]
                         })
-                })
-                .catch(err => console.log(err))
-        } else if (typeOfReport == 'average_person_in_store') {
-            console.log(reportForRoom)
-            axios.get(`${baseUrl}/api/product_detection/average_person_in_store?storeId=${reportForRoom}&startDate=${formatDate(date['from'])}&endDate=${formatDate(date['to'])}`)
-                .then(res => {
-                    console.log(res.data);
-                    const data = res.data.toSorted((a, b) => new Date(a.startDate) - new Date(b.startDate));
-                    setChartData(
-                        {
-                            labels: data.map(d => {
-                                let date = new Date(d['startDate']);
-                                return date.toLocaleString('en-GB', {
-                                    day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric',
-                                })
-                            }),
-                            datasets: [
-                                {
-                                    data:
-                                        data.map(d => d.value)
-                                }]
-                        })
-                })
-                .catch(err => console.log(err))
-        } else if (typeOfReport == 'average_people_reccuring') {
-            axios.get(`${baseUrl}/api/product_detection/average_people_reccuring`)
-                .then(res => {
-                    console.log(res.data);
-                })
-                .catch(err => console.log(err))
-        } else if (typeOfReport == 'max_people_reccuring') {
-            axios.get(`${baseUrl}/api/product_detection/max_people_reccuring`)
-                .then(res => {
-                    console.log(res.data);
-                })
-                .catch(err => console.log(err))
-        } else if (typeOfReport == 'min_people_reccuring') {
-            axios.get(`${baseUrl}/api/product_detection/min_people_reccuring`)
-                .then(res => {
-                    console.log(res.data);
                 })
                 .catch(err => console.log(err))
         }
@@ -204,65 +152,22 @@ export default function ProductReports({ products }) {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value={'most_return'}>Most return</SelectItem>
-                        <SelectItem value={'total_weekly'}>Total weekly report</SelectItem>
-                        <SelectItem value={'total_monthly'}>Total monthly report</SelectItem>
+                        <SelectItem value={'money_return_loss'}>Money return loss</SelectItem>
+                        <SelectItem value={'selling_trend'}>Selling trend</SelectItem>
 
-                        <SelectItem value={'part_of_day'}>Part of day trend</SelectItem>
-
-                        <SelectItem value={'ranking'}>Ranking</SelectItem>
-
-                        <SelectItem value={'average_person_in_store'}>Average number of people</SelectItem>
-
-                        <SelectItem value={'average_people_reccuring'}>Average people reccuring</SelectItem>
-                        <SelectItem value={'max_people_reccuring'}>Max people reccuring</SelectItem>
-                        <SelectItem value={'min_people_reccuring'}>Min people reccuring</SelectItem>
+                        <SelectItem value={'take_return_rate'}>Take return rate</SelectItem>
                     </SelectContent>
                 </Select>
                 <div className="flex items-center gap-2 flex-wrap">
-                    {(typeOfReport == 'total_weekly' || typeOfReport == 'total_monthly' || typeOfReport == 'part_of_day' || typeOfReport == 'average_person_in_store' || typeOfReport == 'average_people_reccuring' || typeOfReport == 'max_people_reccuring' || typeOfReport == 'min_people_reccuring') &&
+                    {(typeOfReport == 'selling_trend' || typeOfReport == 'take_return_rate' || typeOfReport == 'money_return_loss') &&
                         < DatePickerWithRange date={date} setDate={setDate} />}
-                    {(typeOfReport == 'total_weekly' || typeOfReport == 'total_monthly' || typeOfReport == 'part_of_day' || typeOfReport == 'average_people_reccuring' || typeOfReport == 'max_people_reccuring' || typeOfReport == 'min_people_reccuring') &&
+                    {(typeOfReport == 'selling_trend' || typeOfReport == 'take_return_rate' || typeOfReport == 'money_return_loss') &&
                         <Select value={reportForRoom} onValueChange={(newValue) => setReportForRoom(newValue)}>
                             <SelectTrigger className="w-[160px]">
                                 <SelectValue placeholder="Report for product" />
                             </SelectTrigger>
                             <SelectContent>
-                                {rooms.map((room, index) => <SelectItem key={index} value={room.name}>{room.name}</SelectItem>)}
-                            </SelectContent>
-                        </Select>}
-                    {(typeOfReport == 'average_person_in_store') &&
-                        <Select value={reportForRoom} onValueChange={(newValue) => setReportForRoom(newValue)}>
-                            <SelectTrigger className="w-[160px]">
-                                <SelectValue placeholder="Report for room" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {rooms.filter(room => room['isContainedIn'] == null).map((room, index) => <SelectItem key={index} value={room.id}>{room.name}</SelectItem>)}
-                            </SelectContent>
-                        </Select>}
-                    {(typeOfReport == 'part_of_day' || typeOfReport == 'average_people_reccuring' || typeOfReport == 'max_people_reccuring' || typeOfReport == 'min_people_reccuring') &&
-                        <Select value={partOfDay} onValueChange={(newValue) => setPartOfDay(newValue)}>
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Part of day" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={'morning'}>Morning</SelectItem>
-                                <SelectItem value={'midday'}>Middle of the day</SelectItem>
-                                <SelectItem value={'afternoon'}>Afternoon</SelectItem>
-                            </SelectContent>
-                        </Select>}
-                    {(typeOfReport == 'average_people_reccuring' || typeOfReport == 'max_people_reccuring' || typeOfReport == 'min_people_reccuring') &&
-                        <Select value={dayOfWeek} onValueChange={(newValue) => setDayOfWeek(+newValue)}>
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Report type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={1}>Monday</SelectItem>
-                                <SelectItem value={2}>Tuesday</SelectItem>
-                                <SelectItem value={3}>Wednesday</SelectItem>
-                                <SelectItem value={4}>Thursday</SelectItem>
-                                <SelectItem value={5}>Friday</SelectItem>
-                                <SelectItem value={6}>Saturday</SelectItem>
-                                <SelectItem value={7}>Sunday</SelectItem>
+                                {products.map((product, index) => <SelectItem key={index} value={product.name}>{product.name}</SelectItem>)}
                             </SelectContent>
                         </Select>}
                 </div>
@@ -270,7 +175,10 @@ export default function ProductReports({ products }) {
             </div>
 
             <div className="mt-10">
-                <LineChart data={chartData} />
+                {typeOfReport == 'most_return' ?
+                    <RankingProduct data={chartData} /> :
+                    <LineChart data={chartData} />
+                }
             </div>
 
         </div>)

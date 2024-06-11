@@ -30,7 +30,7 @@ rule "Create request for 5min aggregation 1"
   timer (cron: 0/5 * * * * ?)
   when
     $p: ProductTaken($productGroup:productGroup)
-    not AggregateProduct(act == "take",interval == 5, productGroup == $productGroup)
+    not RequestProductAggregate(act == "take",interval == 5, productGroup == $productGroup)
   then
     System.out.println("Create request for 5min aggregation");
     insert(new RequestProductAggregate(5, $productGroup, "taken"));
@@ -40,7 +40,7 @@ end;
 rule "Resolve request for 5min aggregation"
   when 
     $request: RequestProductAggregate(interval == 5, act == "taken", $productGroup:productGroup)
-    accumulate($products : ProductTaken(productGroup == $productGroup, $price: price) over window:time(5m),
+    accumulate($products : ProductTaken(productGroup == $productGroup, $price: price) over window:time(5s),
         $sum:sum($price),
       $count: count(1)
     )

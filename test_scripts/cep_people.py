@@ -14,12 +14,6 @@ take_event = {
     "price": 100
 }
 
-return_event = {
-    "act": "return",
-    "customerId": "1",
-    "productGroup": "Bread",
-    "price": 100
-}
 
 JWT_TOKEN='eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0YW1hcmFpbGljMTFAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsIm5hbWUiOiJUYXNhIElsaWMiLCJpZCI6NiwiZXhwIjoxNzIwNzQwMTgyLCJpYXQiOjE3MTgwNjE3ODJ9.eOjeeLsgHPlOoXw1P-WHVBlHv675KyNQGyB3MFP0EI2hzrQNKzqg8HyrAFNW3V-iHX6Tw1Ly-nnaJvc7lQDEuQ'
 
@@ -29,22 +23,17 @@ headers = {
 }
 
 # Function to send a POST request
-def send_post_request(data):
-    url = f"{BASE_URL}/product_detection?productGroup=Bread&act={data}&customerId=1&price=333"
-    response = requests.post(url, headers=headers)
+def send_post_request():
+    url = f"{BASE_URL}/people_detection?location=Level 2 Room 1&numberOfPeople=5"
+    response = requests.post(url,headers=headers)
     return response
 
 for i in range(288):
-    wait = random.choice([13,16])
     # Trigger take event
-    response_take = send_post_request("take")
+    response_take = send_post_request()
     print(f"Take Event Response: {response_take.status_code} - {response_take.text}")
 
     # Wait for some time before triggering the return event to simulate real-time events
-    time.sleep(wait)
+    time.sleep(1)
 
-    # Trigger return event
-    response_return = send_post_request("return")
-    print(f"Return Event Response: {response_return.status_code} - {response_return.text}")
 
-    # Further steps can be added to trigger other events and test different Drools rules.

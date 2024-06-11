@@ -30,8 +30,8 @@ public class ProductController {
     }
 
     @GetMapping("/all_for_building")
-    public List<ProductDTO> getAllProducts(@RequestParam Long roomId) {
-        return productService.getAllProductsForRoom(roomId);
+    public List<ProductDTO> getAllProducts() {
+        return productService.getAllProducts();
     }
 
     @PostMapping()

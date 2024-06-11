@@ -29,7 +29,7 @@ rule "RETURN Create request for 5min aggregation 1"
   timer (cron: 0/5 * * * * ?)
   when
     $p: ProductReturned($productGroup:productGroup)
-    not AggregateProduct(act == "return",interval == 5, productGroup == $productGroup)
+    not RequestProductAggregate(act == "return",interval == 5, productGroup == $productGroup)
   then
     System.out.println("Create request for 5min aggregation");
     insert(new RequestProductAggregate(5, $productGroup, "return"));
@@ -39,7 +39,7 @@ end;
 rule "RETURN Resolve request for 5min aggregation"
   when 
     $request: RequestProductAggregate(interval == 5, act == "return", $productGroup:productGroup)
-    accumulate($products : ProductReturned(productGroup == $productGroup, $price: price) over window:time(5m),
+    accumulate($products : ProductReturned(productGroup == $productGroup, $price: price) over window:time(5s),
         $sum:sum($price),
         $count: count(1)
     )

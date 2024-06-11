@@ -24,6 +24,20 @@ public class AggregateProduct {
     public AggregateProduct() {
     }
 
+    public AggregateProduct(String id, String parentId, int previousInterval, int interval, String productGroup,
+            Date timeStamp, Long quantity, String act, boolean isProcessed, double price) {
+        this.id = id;
+        this.parentId = parentId;
+        this.previousInterval = previousInterval;
+        this.interval = interval;
+        this.productGroup = productGroup;
+        this.timeStamp = timeStamp;
+        this.quantity = quantity;
+        this.act = act;
+        this.isProcessed = isProcessed;
+        this.price = price;
+    }
+
     public AggregateProduct(int interval, int previousInterval, String productGroup, String act,
             Long quantity,
             double price) {
@@ -33,6 +47,7 @@ public class AggregateProduct {
         this.act = act;
         this.quantity = quantity;
         this.productGroup = productGroup;
+        this.price = price;
     }
 
     public String getId() {

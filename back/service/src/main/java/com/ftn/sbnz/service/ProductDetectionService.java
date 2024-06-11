@@ -19,7 +19,6 @@ import org.springframework.web.server.ResponseStatusException;
 import com.ftn.sbnz.dtos.ReturnSellRateDTO;
 import com.ftn.sbnz.managers.SessionManager;
 import com.ftn.sbnz.model.events.ProductEvent;
-import com.ftn.sbnz.model.models.PeopleReportResult;
 import com.ftn.sbnz.model.models.ProductReportResult;
 import com.ftn.sbnz.model.models.ReportFilter;
 import com.ftn.sbnz.repository.IProductRepository;
@@ -32,31 +31,6 @@ public class ProductDetectionService {
 
     @Autowired
     private IProductRepository productRepository;
-
-    // public List<PeopleReportResult> mostBoughtProducts(String product) {
-    // Calendar calendar = Calendar.getInstance();
-    // calendar.add(Calendar.YEAR, -10);
-    // Date starDate = calendar.getTime();
-
-    // // Get the date for tomorrow
-    // calendar.add(Calendar.YEAR, 10);
-    // calendar.add(Calendar.DAY_OF_MONTH, 1);
-    // Date endDate = calendar.getTime();
-
-    // KieSession kieSession = sessionManager.getReportSession();
-    // ReportFilter filter = new ReportFilter(starDate, endDate, null, null, 1440,
-    // "ranking");
-    // kieSession.insert(filter);
-    // kieSession.getAgenda().getAgendaGroup("peopleReport").setFocus();
-    // kieSession.fireAllRules();
-    // List<PeopleReportResult> result = kieSession
-    // .getObjects(new ClassObjectFilter(PeopleReportResult.class)).stream()
-    // .map(o -> (PeopleReportResult) o).collect(Collectors.toList());
-    // result.sort(Comparator.comparingDouble(PeopleReportResult::getPeopleCount).reversed());
-    // kieSession.getAgenda().getAgendaGroup("cleanup").setFocus();
-    // kieSession.fireAllRules();
-    // return result;
-    // }
 
     public List<ProductReportResult> mostReturned() {
         Calendar calendar = Calendar.getInstance();
@@ -83,8 +57,8 @@ public class ProductDetectionService {
 
     }
 
-    public List<PeopleReportResult> sellingTrend(String product, String startDate, String endDate) {
-        KieSession kieSession = sessionManager.getAggregateProducteSession();
+    public List<ProductReportResult> sellingTrend(String product, String startDate, String endDate) {
+        KieSession kieSession = sessionManager.getProductReportSession();
 
         SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
         Date startDateParsed;
@@ -102,11 +76,11 @@ public class ProductDetectionService {
             kieSession.getAgenda().getAgendaGroup("productReportTake").setFocus();
             kieSession.fireAllRules();
 
-            List<PeopleReportResult> result = kieSession
-                    .getObjects(new ClassObjectFilter(PeopleReportResult.class)).stream()
-                    .map(o -> (PeopleReportResult) o).collect(Collectors.toList());
+            List<ProductReportResult> result = kieSession
+                    .getObjects(new ClassObjectFilter(ProductReportResult.class)).stream()
+                    .map(o -> (ProductReportResult) o).collect(Collectors.toList());
 
-            result.sort(Comparator.comparing(PeopleReportResult::getStartDate));
+            result.sort(Comparator.comparing(ProductReportResult::getStartDate));
 
             kieSession.getAgenda().getAgendaGroup("cleanup").setFocus();
             kieSession.fireAllRules();
@@ -117,7 +91,7 @@ public class ProductDetectionService {
     }
 
     public ReturnSellRateDTO takeReturnRate(String product, String startDate, String endDate) {
-        KieSession kieSession = sessionManager.getAggregateProducteSession();
+        KieSession kieSession = sessionManager.getProductReportSession();
 
         SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
         Date startDateParsed;
@@ -167,7 +141,7 @@ public class ProductDetectionService {
     }
 
     public List<ProductReportResult> moneyReturnLoss(String product, String startDate, String endDate) {
-        KieSession kieSession = sessionManager.getAggregateProducteSession();
+        KieSession kieSession = sessionManager.getProductReportSession();
 
         SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
         Date startDateParsed;
@@ -212,6 +186,7 @@ public class ProductDetectionService {
         KieSession kieSession = sessionManager.getProductReportSession();
         ReportFilter filter = new ReportFilter(starDate, endDate, null, null, 1440, "most_sell");
         kieSession.insert(filter);
+        kieSession.getAgenda().clear();
         kieSession.getAgenda().getAgendaGroup("productReportTake").setFocus();
         kieSession.fireAllRules();
         List<ProductReportResult> result = kieSession

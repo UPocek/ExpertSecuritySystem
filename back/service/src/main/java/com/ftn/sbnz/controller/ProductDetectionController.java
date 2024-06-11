@@ -27,15 +27,6 @@ public class ProductDetectionController {
         productDetectionService.insertDetection(productGroup, act, customerId, price);
 
     }
-    // @GetMapping("/most_bought")
-    // public List<PeopleReportResult> mostBoughtProducts(@RequestParam String
-    // product,
-    // @RequestParam String startDate,
-    // @RequestParam String endDate) {
-
-    // return productDetectionService.mostBoughtProducts(product, startDate,
-    // endDate);
-    // }
 
     @GetMapping("/most_return")
     public List<ProductReportResult> mostReturned() {
@@ -44,7 +35,7 @@ public class ProductDetectionController {
     }
 
     @GetMapping("/selling_trend")
-    public List<PeopleReportResult> sellingTrend(@RequestParam String product,
+    public List<ProductReportResult> sellingTrend(@RequestParam String product,
             @RequestParam String startDate,
             @RequestParam String endDate) {
 

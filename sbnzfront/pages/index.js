@@ -73,6 +73,7 @@ export default function Home() {
   useEffect(() => {
     axios.get(`${baseUrl}/api/product/all_for_building`)
       .then(res => {
+        console.log(res.data);
         setProducts(res.data);
       })
       .catch(err => console.log(err))
