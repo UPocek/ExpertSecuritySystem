@@ -1,6 +1,6 @@
 # ExpertSecuritySystem
 
-##Pokretanje
+## Pokretanje
 Za pokretanje potrebno je pozicionirati se u setup folder i pokrenuti komandu:
 docker-compose up za podizanje docker kontejnera u koje se nalazi baza.
 
