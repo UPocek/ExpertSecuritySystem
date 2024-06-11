@@ -1,0 +1,125 @@
+package com.ftn.sbnz.rules.backward_people;
+
+import com.ftn.sbnz.model.models.ReportFilter;
+import com.ftn.sbnz.model.models.AggregatedDetection;
+import com.ftn.sbnz.model.models.Location;
+import com.ftn.sbnz.model.models.PeopleReportResult;
+
+
+query isContainedIn( String x, String y )
+  Location( x, y; )
+  or
+  ( Location( z, y; ) and isContainedIn( x, z; ) )
+end
+
+rule "person report 1"
+agenda-group "peopleReport"
+no-loop
+  when
+    $filter: ReportFilter($location:location,$startDate:startDate,$endDate:endDate, $interval:interval)
+    not(PeopleReportResult(location == $location, startDate == $startDate, interval == $interval))
+    $ad: AggregatedDetection(timeStamp after $startDate, timeStamp before $endDate, interval == $interval, isProcessed == false, $location1: location) 
+    isContainedIn($location1, $location;)
+  then
+    System.out.println("Okidac 1");
+    modify($ad){setProcessed(true)};
+   if ($filter.getType().equals("average_people_store") || $filter.getType().equals("average_people_reccuring")){
+        insert(new PeopleReportResult($ad.getAggregation().getAverage(), $startDate, $location, $interval));
+    }else if($filter.getType().equals("max_people_reccuring")){
+     insert(new PeopleReportResult($ad.getAggregation().getMax(), $startDate, $location, $interval));
+    }else if($filter.getType().equals("averagmin_people_reccuringe_people_store")){
+     insert(new PeopleReportResult($ad.getAggregation().getMin(), $startDate, $location, $interval));
+    }
+    else{
+        insert(new PeopleReportResult($ad.getAggregation().getSum(),$startDate, $location, $interval));
+    }
+    
+end;
+
+rule "person report 2"
+agenda-group "peopleReport"
+no-loop
+  when
+    $filter: ReportFilter( $location:location,$startDate:startDate,$endDate:endDate, $interval:interval)
+    $dpcrr: PeopleReportResult(location == $location, startDate == $startDate, interval == $interval, $peopleCount:peopleCount)
+    $ad : AggregatedDetection(interval == $interval, timeStamp after $startDate , timeStamp before $endDate, isProcessed == false,$location1:location)
+    isContainedIn($location1, $location;)
+  then
+  System.out.println("Okidac 2");
+    modify($ad){setProcessed(true)};
+    if ($filter.getType().equals("average_people_store") || $filter.getType().equals("average_people_reccuring")){
+      modify($dpcrr){setPeopleCount(($peopleCount + $ad.getAggregation().getAverage())/2)};
+    }else if($filter.getType().equals("max_people_reccuring")){
+      modify($dpcrr){setPeopleCount($peopleCount > $ad.getAggregation().getMax() 
+            ? $peopleCount 
+            : $ad.getAggregation().getMax())};
+    }else if($filter.getType().equals("averagmin_people_reccuringe_people_store")){
+      modify($dpcrr){setPeopleCount($peopleCount < $ad.getAggregation().getMin() 
+            ? $peopleCount 
+            : $ad.getAggregation().getMin())};
+    }
+    else{
+        modify($dpcrr){setPeopleCount($peopleCount + $ad.getAggregation().getSum())};
+    }
+end;
+
+rule "person report 3"
+agenda-group "peopleReport"
+no-loop
+  when
+    $filter: ReportFilter($location:location,$startDate:startDate,$endDate:endDate, $interval:interval)
+    not(PeopleReportResult(location == $location, startDate == $startDate, interval == $interval))
+    $ad: AggregatedDetection(timeStamp after $startDate, timeStamp before $endDate, interval == $interval, isProcessed == false, location == $location) 
+  then
+  System.out.println("Okidac 3");
+    modify($ad){setProcessed(true)};
+    if ($filter.getType().equals("average_people_store") || $filter.getType().equals("average_people_reccuring")) {
+        insert(new PeopleReportResult($ad.getAggregation().getAverage(), $startDate, $location, $interval));
+    }else if($filter.getType().equals("max_people_reccuring")){
+     insert(new PeopleReportResult($ad.getAggregation().getMax(), $startDate, $location, $interval));
+    }else if($filter.getType().equals("min_people_reccuring")){
+     insert(new PeopleReportResult($ad.getAggregation().getMin(), $startDate, $location, $interval));
+    }
+    else{
+        insert(new PeopleReportResult($ad.getAggregation().getSum(),$startDate, $location, $interval));
+    }
+end;
+
+rule "person report 4"
+agenda-group "peopleReport"
+no-loop
+  when
+    $filter: ReportFilter($location:location,$startDate:startDate,$endDate:endDate, $interval:interval)
+    $dpcrr: PeopleReportResult(location == $location, startDate == $startDate, interval == $interval, $peopleCount:peopleCount)
+    $ad : AggregatedDetection(interval == $interval, timeStamp after $startDate , timeStamp before $endDate, location == $location,isProcessed == false)
+  then
+  System.out.println("Okidac 4");
+    modify($ad){setProcessed(true)};
+    if ($filter.getType().equals("average_people_store") || $filter.getType().equals("average_people_reccuring")){
+      modify($dpcrr){setPeopleCount(($peopleCount + $ad.getAggregation().getAverage())/2)};
+    }else if($filter.getType().equals("max_people_reccuring")){
+      modify($dpcrr){setPeopleCount($peopleCount > $ad.getAggregation().getMax() 
+            ? $peopleCount 
+            : $ad.getAggregation().getMax())};
+    }else if($filter.getType().equals("min_people_reccuring")){
+      modify($dpcrr){setPeopleCount($peopleCount < $ad.getAggregation().getMin() 
+            ? $peopleCount 
+            : $ad.getAggregation().getMin())};
+    }
+    else{
+        modify($dpcrr){setPeopleCount($peopleCount + $ad.getAggregation().getSum())};
+    }
+    
+end;
+
+rule "Total ranking report 1"
+agenda-group "peopleReport"
+no-loop
+  when
+    $filter: ReportFilter(type == "ranking",location == null, $startDate:startDate,$endDate:endDate, $interval:interval)
+    $l: Location($location:item)
+    not(ReportFilter(location == $location))
+ then
+ System.out.println("Okidac 5");
+    insert(new ReportFilter($startDate, $endDate, $location,null, $interval, "ranking"));
+end;

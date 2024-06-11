@@ -1,11 +1,28 @@
 <kmodule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://jboss.org/kie/6.0.0/kmodule">
-    <kbase name="bwBase" packages="backward">
-        <ksession name="bwKsession"/>
+
+    <kbase name="DefaultKBase" default="true" packages="rules">
+        <ksession name="DefaultSession" default="true" />
     </kbase>
-    <kbase name="sensors" packages="drl">
-        <ksession name="sensorsKsession"/>
+    <kbase name="ForwardSecKBase" packages="forward_security">
+        <ksession name="ForwardSecSession"/>
+    </kbase>
+    <kbase name="ForwardConfigKBase" packages="forward_config">
+        <ksession name="ForwardConfigSession"/>
+    </kbase>
+    <kbase name="bwPeopleBase" packages="backward_people">
+        <ksession name="ReportSessionPeople"/>
+    </kbase>
+    <kbase name="bwProductBase" packages="backward_product">
+        <ksession name="ReportSessionProduct"/>
+    </kbase>
+    <kbase name="CepPeopleBase" packages="cep_people" eventProcessingMode="stream">
+        <ksession name="cepPeopleSession"/>
+    </kbase>
+    <kbase name="CepProductBase" packages="cep_product" eventProcessingMode="stream">
+        <ksession name="cepProductSession"/>
     </kbase>
     <kbase name="cepKbase" eventProcessingMode="stream" packages="cep">
+        <ksession name="cepKsessionTest" clockType="pseudo"/>
         <ksession name="cepKsession" clockType="pseudo"/>
     </kbase>
 </kmodule>

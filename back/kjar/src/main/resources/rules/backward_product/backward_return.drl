@@ -1,0 +1,86 @@
+package com.ftn.sbnz.rules.backward_product;
+
+import com.ftn.sbnz.model.models.ReportFilter;
+import com.ftn.sbnz.model.models.AggregateProduct;
+import com.ftn.sbnz.model.models.Location;
+import com.ftn.sbnz.model.models.ProductReportResult;
+
+query isProductOf( String x, String y )
+  Location( x, y; )
+  or
+  ( Location( z, y; ) and isProductOf( x, z; ) )
+end
+
+rule "product1 report 1"
+agenda-group "productReportReturn"
+  when
+    $filter: ReportFilter($productGroup:productGroup,$startDate:startDate,$endDate:endDate, $interval:interval)
+    not(ProductReportResult(productGroup == $productGroup, startDate == $startDate, interval == $interval))
+    $ad: AggregateProduct(act == "return",timeStamp after $startDate, timeStamp before $endDate, interval == $interval, isProcessed == false, $productGroup1: productGroup) 
+    isProductOf($productGroup1, $productGroup;)
+  then
+    modify($ad){ setProcessed(true); }
+    if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
+      insert(new ProductReportResult($ad.getQuantity(),$startDate, $productGroup, $interval));
+    } else {
+      insert(new ProductReportResult($ad.getPrice(),$startDate, $productGroup, $interval));
+    }
+end
+
+rule "product1 report 2"
+agenda-group "productReportReturn"
+no-loop
+  when
+    $filter: ReportFilter( $productGroup:productGroup,$startDate:startDate,$endDate:endDate, $interval:interval)
+    $dpcrr: ProductReportResult(productGroup == $productGroup, startDate == $startDate, interval == $interval, $value:value)
+    $ad : AggregateProduct(act == "return",interval == $interval, timeStamp after $startDate , timeStamp before $endDate, isProcessed == false,$productGroup1:productGroup)
+    isProductOf($productGroup1, $productGroup;)
+  then
+    if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
+      modify($dpcrr){ setValue($value + $ad.getQuantity()) };
+    } else {
+      modify($dpcrr){ setValue($value + $ad.getPrice())};
+    }
+end
+
+rule "product1 report 3"
+agenda-group "productReportReturn"
+no-loop
+  when
+    $filter: ReportFilter($productGroup:productGroup,$startDate:startDate,$endDate:endDate, $interval:interval)
+    not(ProductReportResult(productGroup == $productGroup, startDate == $startDate, interval == $interval))
+    $ad: AggregateProduct(act == "return",timeStamp after $startDate, timeStamp before $endDate, interval == $interval, isProcessed == false, productGroup == $productGroup) 
+  then
+    if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
+      insert(new ProductReportResult($ad.getQuantity(),$startDate, $productGroup, $interval));
+    } else {
+      insert(new ProductReportResult($ad.getPrice(),$startDate, $productGroup, $interval));
+    }
+end
+
+rule "product1 report 4"
+agenda-group "productReportReturn"
+no-loop
+  when
+    $filter: ReportFilter($productGroup:productGroup,$startDate:startDate,$endDate:endDate, $interval:interval)
+    $dpcrr: ProductReportResult(productGroup == $productGroup, startDate == $startDate, interval == $interval, $value:value)
+    $ad : AggregateProduct(act == "return",interval == $interval, timeStamp after $startDate , timeStamp before $endDate, productGroup == $productGroup,isProcessed == false)
+  then
+    modify($ad){ setProcessed(true); }
+    if ($filter.getType().equals("most_return") || $filter.getType().equals("take_return_trend")){
+      modify($dpcrr){ setValue($value + $ad.getQuantity()) };
+    } else {
+      modify($dpcrr){ setValue($value + $ad.getPrice())};
+    }
+end
+
+rule "Total most_return report 1"
+agenda-group "productReportReturn"
+no-loop
+  when
+    $filter: ReportFilter(type == "most_return",productGroup == null, $startDate:startDate,$endDate:endDate, $interval:interval)
+    $l: Location($productGroup:item)
+    not(ReportFilter(productGroup == $productGroup))
+  then
+    insert(new ReportFilter($startDate, $endDate, null, $productGroup, $interval, "most_return"));
+end

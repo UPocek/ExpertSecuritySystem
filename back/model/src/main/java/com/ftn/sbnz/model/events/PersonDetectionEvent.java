@@ -6,7 +6,6 @@ import org.kie.api.definition.type.Role;
 public class PersonDetectionEvent {
     public String location;
     public int numberOfPeople;
-    public boolean done;
 
     public PersonDetectionEvent() {
     }
@@ -14,7 +13,6 @@ public class PersonDetectionEvent {
     public PersonDetectionEvent(String location, int numberOfPeople) {
         this.location = location;
         this.numberOfPeople = numberOfPeople;
-        this.done = false;
     }
 
     public String getLocation() {
@@ -31,14 +29,6 @@ public class PersonDetectionEvent {
 
     public void setNumberOfPeople(int numberOfPeople) {
         this.numberOfPeople = numberOfPeople;
-    }
-
-    public boolean isDone() {
-        return done;
-    }
-
-    public void setDone(boolean done) {
-        this.done = done;
     }
 
 }

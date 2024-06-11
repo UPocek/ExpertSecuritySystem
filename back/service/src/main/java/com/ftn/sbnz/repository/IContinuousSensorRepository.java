@@ -1,5 +1,6 @@
 package com.ftn.sbnz.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,4 +13,6 @@ public interface IContinuousSensorRepository extends JpaRepository<ContinuousSen
     public boolean existsById(Long id);
 
     public Optional<ContinuousSensor> findById(Long id);
+
+    public List<ContinuousSensor> findAllByRoomBuildingId(Long id);
 }

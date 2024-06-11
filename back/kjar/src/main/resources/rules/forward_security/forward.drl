@@ -1,0 +1,361 @@
+package com.ftn.sbnz.rules.forward_security;
+
+import com.ftn.sbnz.model.models.Level;
+import com.ftn.sbnz.model.models.Camera;
+import com.ftn.sbnz.model.models.Security;
+import com.ftn.sbnz.model.models.Alarm;
+import com.ftn.sbnz.model.models.Room;
+import com.ftn.sbnz.model.events.ContinuousSensorEvent;
+import com.ftn.sbnz.model.events.DiscretSensorEvent;
+import com.ftn.sbnz.ws.SocketHandler;
+import com.ftn.sbnz.dtos.MessageDTO;
+import com.ftn.sbnz.repository.ISecurityRepository;
+
+import function com.ftn.sbnz.ws.SocketHandler.sendMessage;
+
+global ISecurityRepository securityRepository;
+
+rule "Activate camera if motion is detected and camera is present"
+agenda-group "security_forward"
+when
+    $event: DiscretSensorEvent(type == "motion")
+    $camera: Camera(room.id == $event.roomId, $camera.isOn == false)
+then
+    modify($camera){setOn(true)};
+    System.out.println("================================================");
+    System.out.println("RULE NAME: Activate camera if motion is detected and camera is present");
+    System.out.println("Room with id: " + $event.roomId + " has a camera.");
+    System.out.println("Motion has been detected by sensorId: " + $event.deviceId + " in this room, so camera is turned on: " + $camera.isOn);
+    System.out.println("================================================");
+    delete($event);
+end;
+
+rule "Activate camera if sound or smoke is detected and camera is present"
+agenda-group "security_forward"
+when
+    $event: ContinuousSensorEvent(type in ("sound", "smoke"), level in (Level.MEDIUM, Level.HIGH))
+    $camera: Camera(room.id == $event.roomId, $camera.isOn == false)
+then
+    modify($camera){setOn(true)};
+    System.out.println("================================================");
+    System.out.println("RULE NAME: Activate camera if sound or smoke is detected and camera is present");
+    System.out.println("Room with id: " + $event.roomId + " has a camera.");
+    System.out.println($event.type + " detected at level " + $event.level + " has been detected by sensorId: " + $event.deviceId + " in this room, so camera is turned on: " + $camera.isOn);
+    System.out.println("================================================");
+    delete($event);
+end;
+
+rule "Sound or smoke is detected low"
+agenda-group "security_forward"
+when
+    $event: ContinuousSensorEvent(type in ("sound", "smoke"), level in (Level.LOW))
+then
+    System.out.println("================================================");
+    System.out.println("Sound or smoke is detected low");
+    System.out.println($event.type + " detected at level " + $event.level + " has been detected by sensorId: " + $event.deviceId + " in this room.");
+    System.out.println("================================================");
+    delete($event);
+end;
+
+rule "Always notify security if camera is not present"
+agenda-group "security_forward"
+salience -10
+when
+    $room: Room(building != null)
+    not(Camera(room.id == $room.id))
+    $security: Security(currentRoomId == null)
+    not(Security(currentRoomId == $room.id))
+then
+    MessageDTO message = new MessageDTO($room.id, "security",
+                        String.format("Security notified for room %d", $room.id));
+    sendMessage(message);
+    modify($security){notifyOnCaution($room.id)};
+    Security s = securityRepository.findById($security.id).get();
+    s.setCurrentRoomId($room.id);
+    securityRepository.save(s);
+    securityRepository.flush();
+    System.out.println("================================================");
+    System.out.println("RULE NAME: Always notify security if camera is not present");
+    System.out.println("Room with id: " + $room.id + " doesn't have a camera.");
+    System.out.println("Security with id: " + $security.id + " wasn't priorly in some room.");
+    System.out.println("There is no other security in room with id: " + $room.id);
+    System.out.println("Security notified for room id: " + $room.id);
+    System.out.println("================================================");
+end;
+
+rule "Notify security if motion is detected and camera is not present"
+agenda-group "security_forward"
+when
+    $event: DiscretSensorEvent(type == "motion")
+    not(Camera(room.id == $event.roomId))
+    not(Security(currentRoomId == $event.roomId))
+    $security: Security()
+then
+    MessageDTO message = new MessageDTO($event.roomId, "security",
+                        String.format("Security notified for room %d", $event.roomId));
+    sendMessage(message);
+    modify($security){notifyOnCaution($event.roomId)};
+    Security s = securityRepository.findById($security.id).get();
+    s.setCurrentRoomId($event.roomId);
+    securityRepository.save(s);
+    securityRepository.flush();
+    System.out.println("================================================");
+    System.out.println("RULE NAME: Notify security if motion is detected and camera is not present");
+    System.out.println("Room with id: " + $event.roomId + " doesn't have a camera.");
+    System.out.println("There is no other security in room with id: " + $event.roomId);
+    System.out.println("Motion detected in room id: " + $event.roomId + ", security notified and moved to this room.");
+    System.out.println("================================================");
+    delete($event);
+end;
+
+rule "Notify security if sound or smoke is detected and camera is not present"
+agenda-group "security_forward"
+when
+    $event: ContinuousSensorEvent(type in ("sound", "smoke"), level in (Level.MEDIUM, Level.HIGH))
+    not(Camera(room.id == $event.roomId))
+    not(Security(currentRoomId == $event.roomId))
+    $security: Security()
+then
+    MessageDTO message = new MessageDTO($event.roomId, "security",
+                        String.format("Security notified for room %d", $event.roomId));
+    sendMessage(message);
+    modify($security){notifyOnCaution($event.roomId)};
+    Security s = securityRepository.findById($security.id).get();
+    s.setCurrentRoomId($event.roomId);
+    securityRepository.save(s);
+    securityRepository.flush();
+    System.out.println("================================================");
+    System.out.println("RULE NAME: Notify security if sound or smoke is detected and camera is not present");
+    System.out.println("Room with id: " + $event.roomId + " doesn't have a camera.");
+    System.out.println("There is no other security in room with id: " + $event.roomId);
+    System.out.println($event.type + " detected at level " + $event.level + " in room id: " + $event.roomId + ", security:"+$security.id+" notified and moved to this room.");
+    System.out.println("================================================");
+    delete($event);
+end;
+
+rule "Check temperature if presence detected by camera"
+agenda-group "security_forward"
+when
+    $event: DiscretSensorEvent(type == "cameraDetect")
+    $camera: Camera(id == $event.deviceId)
+then
+    insert(new DiscretSensorEvent($camera.room.getId(), "detectTemp"));
+    System.out.println("================================================");
+    System.out.println("RULE NAME: Check temperature if presence detected by camera");
+    System.out.println("Room with id: " + $event.roomId + " has a camera.");
+    System.out.println("Presence detected by camera id: " + $event.deviceId + " in room id: " + $event.roomId);
+    System.out.println("Camera has been requested to detect the temperature of the object.");
+    System.out.println("================================================");
+    delete($event);
+end;
+
+rule "presence detected by camera"
+agenda-group "security_forward"
+when
+    $event1: DiscretSensorEvent(type == "detectTemp")
+    $event2: DiscretSensorEvent(type == "detectTempWarm", roomId == $event1.getRoomId())
+then
+    insert(new DiscretSensorEvent($event1.getRoomId(), "faceRecognition"));
+    System.out.println("================================================");
+    System.out.println("RULE NAME: presence detected by camera");
+    System.out.println("Camera has been requested to detect the temperature of the object.");
+    System.out.println("Temperature detected in room id: " + $event1.getRoomId() + "by camera with id:"+$event2.deviceId);
+    System.out.println("Camera has been requested to detect the face of the person.");
+    System.out.println("================================================");
+    delete($event1);
+    delete($event2);
+end;
+
+rule "no presence detected by camera"
+agenda-group "security_forward"
+when
+    $event1: DiscretSensorEvent(type == "detectTemp")
+    $event2: DiscretSensorEvent(type == "detectTempCold", roomId == $event1.getRoomId())
+then
+    System.out.println("================================================");
+    System.out.println("RULE NAME: no presence detected by camera");
+    System.out.println("Camera has been requested to detect the temperature of the object.");
+    System.out.println("Temperature not detected in room id: " + $event1.getRoomId() + "by camera with id:"+$event2.deviceId);
+    System.out.println("================================================");
+    delete($event1);
+    delete($event2);
+end;
+
+rule "presence detected by security"
+agenda-group "security_forward"
+when
+    $event: DiscretSensorEvent(type == "securityDetect")
+    $security: Security(currentRoomId == $event.roomId)
+then
+    insert(new DiscretSensorEvent($event.roomId, "securityFaceRecognition"));
+    System.out.println("================================================");
+    System.out.println("RULE NAME: presence detected by security");
+    System.out.println("Secuurity is currently in the room with id:" + $event.roomId);
+    System.out.println("Presence detected by security in room id: " + $event.roomId );
+    System.out.println("Security has been requested to detect the face of the person.");
+    System.out.println("================================================");
+    delete($event);
+end;
+
+rule "Signal unknown person if face detection fails"
+agenda-group "security_forward"
+when
+    $event1: DiscretSensorEvent(type == "faceRecognition")
+    $event2: DiscretSensorEvent(type == "faceRecognitionFalse", roomId == $event1.getRoomId())
+    $room: Room(id == $event1.getRoomId())
+then
+    MessageDTO message = new MessageDTO($room.id, "YELLOW",
+                        String.format("Room %s fired %s alarm because of disaster", $room.name, "YELLOW"));
+    sendMessage(message);
+    modify($room){setAlarm(Alarm.YELLOW)};
+    System.out.println("================================================");
+    System.out.println("RULE NAME: Signal unknown person if face detection fails");
+    System.out.println("Camera with id:"+ $event1.deviceId+ " has been requested to detect the face of the person.");
+    System.out.println("Face detection failed in room id: " + $event1.getRoomId());
+    System.out.println("Setting alarm to YELLOW in this room.");
+    System.out.println("================================================");
+    delete($event1);
+end;
+
+rule "Signal known person if face detection success"
+agenda-group "security_forward"
+when
+    $event1: DiscretSensorEvent(type == "faceRecognition")
+    $event2: DiscretSensorEvent(type == "faceRecognitionTrue", roomId == $event1.getRoomId())
+    $room: Room(id == $event1.getRoomId())
+then
+    System.out.println("================================================");
+    System.out.println("RULE NAME: Signal known person if face detection success");
+    System.out.println("Camera with id:"+ $event1.deviceId+ " has been requested to detect the face of the person.");
+    System.out.println("Face detection was a success in room id: " + $event1.getRoomId());
+    System.out.println("================================================");
+    delete($event1);
+end;
+
+rule "Set red alarm and lock doors if loud sound in room with unknown person and yellow alarm"
+agenda-group "security_forward"
+when
+    $event1: ContinuousSensorEvent(type == "sound", level == Level.HIGH)
+    $room: Room(id == $event1.getRoomId(), alarm == Alarm.YELLOW)
+    $event2: DiscretSensorEvent(type == "faceRecognitionFalse", roomId == $room.id)
+then
+    MessageDTO message = new MessageDTO($room.id, "RED",
+                        String.format("Room %s fired %s alarm because of disaster", $room.name, "RED"));
+    sendMessage(message);
+    modify($room){setAlarm(Alarm.RED)};
+    modify($room){setLocked(true)};
+    System.out.println("================================================");
+    System.out.println("RULE NAME: Set red alarm and lock doors if loud sound in room with unknown person and yellow alarm");
+    System.out.println("Level HIGH sound detected in room id: " + $event1.getRoomId() + " with YELLOW alarm.");
+    System.out.println("Face detection failed in room id: " + $event1.getRoomId());
+    System.out.println("Setting alarm to RED and locking doors.");
+    System.out.println("================================================");
+    delete($event1);
+end;
+
+rule "Call police if alarm is red"
+agenda-group "security_forward"
+when
+    $room: Room(alarm == Alarm.RED)
+    $security: Security(buildingId == $room.building.getId())
+    not(DiscretSensorEvent(roomId == $room.id, type == "calledPolice"))
+then
+    MessageDTO message = new MessageDTO($room.id, "police",
+                        String.format("Called Police for room %s", $room.name));
+    sendMessage(message);
+    modify($security){callPolice($room.id)};
+    insert(new DiscretSensorEvent($room.id, "calledPolice"));
+    System.out.println("================================================");
+    System.out.println("RULE NAME: Call police if alarm is red");
+    System.out.println("There is a security in this building.");
+    System.out.println("No one called police yet.");
+    System.out.println("Alarm is RED in room id: " + $room.id);
+    System.out.println("Security calling police now.");
+    System.out.println("================================================");
+end;
+
+rule "Set yellow alarm if security finds unknown person"
+agenda-group "security_forward"
+when
+    $event1: DiscretSensorEvent(type == "securityFaceRecognition")
+    $event2: DiscretSensorEvent(type == "securityFaceRecognitionFalse", roomId == $event1.roomId)
+    $security: Security(currentRoomId == $event1.roomId)
+    $room: Room(id == $event1.roomId)
+then
+    MessageDTO message = new MessageDTO($room.id, "YELLOW",
+                        String.format("Room %s fired %s alarm because of disaster", $room.name, "YELLOW"));
+    sendMessage(message);
+    insert(new DiscretSensorEvent($event1.roomId, "notifyTeam"));
+    modify($room){setAlarm(Alarm.YELLOW)};
+    System.out.println("================================================");
+    System.out.println("RULE NAME: Set yellow alarm if security finds unknown person");
+    System.out.println("Security is in room:"+ $event1.roomId+" now.");
+    System.out.println("Security face detection failed in room id: " + $event1.getRoomId());
+    System.out.println("Security found unknown person in room id: " + $event1.roomId);
+    System.out.println("Setting alarm to YELLOW and notifying team.");
+    System.out.println("================================================");
+    delete($event1);
+    delete($event2);
+end;
+
+rule "Security finds known person"
+agenda-group "security_forward"
+when
+    $event1: DiscretSensorEvent(type == "securityFaceRecognition")
+    $event2: DiscretSensorEvent(type == "securityFaceRecognitionTrue", roomId == $event1.roomId)
+    $security: Security(currentRoomId == $event1.roomId)
+    $room: Room(id == $event1.roomId)
+then
+    System.out.println("================================================");
+    System.out.println("RULE NAME: Security finds known person");
+    System.out.println("Security is in room:"+ $event1.roomId+" now.");
+    System.out.println("Security face detection was a succes in room id: " + $event1.getRoomId());
+    System.out.println("Security found known person in room id: " + $event1.roomId);
+    System.out.println("================================================");
+    delete($event1);
+    delete($event2);
+end;
+
+rule "Notify security team"
+agenda-group "security_forward"
+when
+    $event1: DiscretSensorEvent(type == "notifyTeam")
+    $room: Room(id == $event1.roomId)
+    $security: Security(currentRoomId != $event1.roomId, buildingId == $room.building.getId())
+then
+    MessageDTO message = new MessageDTO($room.id, "security",
+                        String.format("Security notified for room %d", $room.id));
+    sendMessage(message);
+    modify($security){notifyOnCaution($room.id)};
+    Security s = securityRepository.findById($security.id).get();
+    s.setCurrentRoomId($room.id);
+    securityRepository.save(s);
+    securityRepository.flush();
+    System.out.println("================================================");
+    System.out.println("RULE NAME: Notify security team");
+    System.out.println("Security team notificating.");
+    System.out.println("Security with id:"+ $security.id+ " is notified for room id: " + $event1.roomId);
+    System.out.println("================================================");
+    delete($event1);
+end;
+
+rule "Set red alarm and lock doors if loud sound in room with security and yellow alarm"
+agenda-group "security_forward"
+when
+    $event: ContinuousSensorEvent(type == "sound", level == Level.HIGH)
+    $room: Room(id == $event.roomId, alarm == Alarm.YELLOW)
+    $security: Security(currentRoomId == $room.id)
+then
+    MessageDTO message = new MessageDTO($room.id, "RED",
+                        String.format("Room %s fired %s alarm because of disaster", $room.name, "RED"));
+    sendMessage(message);
+    modify($room){setAlarm(Alarm.RED)};
+    modify($room){setLocked(true)};
+    System.out.println("================================================");
+    System.out.println("RULE NAME: Set red alarm and lock doors if loud sound in room with security and yellow alarm");
+    System.out.println("Level HIGH sound detected in room id: " + $event.roomId + " with YELLOW alarm.");
+    System.out.println("Security is present in that room");
+    System.out.println("Setting alarm to RED and locking doors.");
+    System.out.println("================================================");
+    delete($event);
+end;

@@ -15,7 +15,7 @@ public class ReactorSensor {
     @GeneratedValue(strategy = GenerationType.TABLE)
     public Long id;
     @ManyToOne
-    private Room room;
+    public Room room;
 
     public ReactorSensor() {
     }
@@ -31,4 +31,17 @@ public class ReactorSensor {
     public Long getId() {
         return id;
     }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Room getRoom() {
+        return room;
+    }
+
+    public void setRoom(Room room) {
+        this.room = room;
+    }
+
 }

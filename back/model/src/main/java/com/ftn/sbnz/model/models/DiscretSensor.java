@@ -7,8 +7,11 @@ public class DiscretSensor extends ObserverSensor {
 
     private String type;
 
-    public DiscretSensor(String type, int checkTime, Room room) {
-        super(checkTime, room);
+    public DiscretSensor() {
+    }
+
+    public DiscretSensor(String type, Room room) {
+        super(room);
         this.type = type;
     }
 
